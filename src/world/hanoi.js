@@ -6,11 +6,12 @@
 // Landmark rule: every cell belonging to a landmark's area carries that landmark's id;
 // single-building landmarks tag just their one cell. Step 4 (discovery / checklist) reads
 // cell.landmarkId from the traveller's current cell.
-// Out-of-grid get() returns a frozen forest cell (blocker, biome heartland, landmarkId null),
+// Out-of-grid get() returns a frozen forest cell (blocker, biome hanoi, landmarkId null),
 // so the page edge reads as a tree border and nothing can walk or route there.
-// Biome note: cell.biome is 'heartland' everywhere. The Voronoi biome (core/biomes.js) is
-// still used by game progress + scraps for flavour and may return desert / snow at the map
-// edges - cosmetic only, out of scope for this step.
+// Biome note: cell.biome is 'hanoi' everywhere (Step 6: its own biomeTint + water palette entries,
+// so the Hanoi map reads terracotta roofs / teal lakes while the warm paper base stays). The Voronoi
+// biome (core/biomes.js) is still used by game progress + scraps for flavour and may return desert /
+// snow at the map edges - cosmetic only, out of scope for this step.
 // No long dashes in this file: only short hyphens (-).
 import { getTile, socketsOf } from './tiles.js';
 import { getHanoiTile, hanoiSocketsOf } from './hanoi-models.js';
@@ -51,7 +52,7 @@ export function createHanoi({ seed = 1 } = {}) {
       const t = ht || getTile(spec.tileId);
       cells[(z + HANOI_OFFSET) * HANOI_SIZE + (x + HANOI_OFFSET)] = Object.freeze({
         x, z, tileId: t.id, model: t.model, rot: spec.rot,
-        sockets: ht ? hanoiSocketsOf(spec.tileId, spec.rot) : socketsOf(t.id, spec.rot), tags: t.tags, biome: 'heartland',
+        sockets: ht ? hanoiSocketsOf(spec.tileId, spec.rot) : socketsOf(t.id, spec.rot), tags: t.tags, biome: 'hanoi',
         landmarkId: landmarkOf.get(x + ',' + z) || null,
       });
     }
@@ -61,7 +62,7 @@ export function createHanoi({ seed = 1 } = {}) {
   const outTile = getTile('forest');
   const outCell = (x, z) => Object.freeze({
     x, z, tileId: outTile.id, model: outTile.model, rot: 0,
-    sockets: socketsOf(outTile.id, 0), tags: outTile.tags, biome: 'heartland', landmarkId: null,
+    sockets: socketsOf(outTile.id, 0), tags: outTile.tags, biome: 'hanoi', landmarkId: null,
   });
 
   return {
