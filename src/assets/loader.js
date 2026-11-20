@@ -10,18 +10,19 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CONFIG, TILE_SIZE, PATH_WIDTH, RIVER_WIDTH, FLAP_LAYER_GAP } from '../core/config.js';
 import { MODELS, MODEL_IDS, FALLBACK_MODEL } from '../core/models.js';
+import { HANOI_MODELS, HANOI_MODEL_IDS } from '../world/hanoi-models.js';
 
 const P = CONFIG.palette;
 
 // ---- flat printed base -----------------------------------------------------------------------
-function baseTexture(id) {
+function baseTexture(id, sockets) {
   const N = 128;
   const c = document.createElement('canvas');
   c.width = c.height = N;
   const g = c.getContext('2d');
   g.fillStyle = P.sage;
   g.fillRect(0, 0, N, N);
-  const s = MODELS[id].sockets;
+  const s = sockets;
   const u = N / TILE_SIZE; // pixels per world unit. Canvas: +x = east, top = north.
   const strip = (dir, width, color) => {
     const w = width * u;
@@ -103,6 +104,108 @@ const RECIPES = {
   river_corner: [tuft(-0.6, 0.6), ['rect', 0.06, 0.36, -0.55, -0.2, 0, P.olive, 1]],
   river_source: [['arch', 0.9, 0.5, 0, -0.25, 0, P.paperShade, 1], ['arch', 0.5, 0.3, 0.3, -0.1, 0, P.kraft, 1]],
   bridge: [['arch', 1.3, 0.34, -0.3, 0, 90, P.kraft, 1], ['arch', 1.3, 0.34, 0.3, 0, 90, P.kraft, -1]],
+  // Step 3 Hanoi landmarks (Hanoi-only models; flat cut-paper silhouettes).
+  // Layering rule: every flap starts at ground y = 0, so a taller piece behind (smaller z) shows
+  // above a shorter wider piece in front of it. Heights stay under ~1.35 (traveller is 0.6).
+  hanoi_turtletower: [
+    ['tri', 0.58, 1.05, 0, -0.25, 0, P.terracotta, 1],
+    ['rect', 0.44, 0.8, 0, -0.22, 0, P.paper, 1],
+    ['rect', 0.66, 0.22, 0, -0.19, 0, P.paperShade, 1],
+    ['rect', 0.1, 0.3, 0, -0.18, 0, P.ink, 1],
+  ],
+  hanoi_ngocson: [
+    ['tri', 1.1, 0.9, 0, -0.28, 0, P.rust, 1],
+    ['rect', 0.9, 0.62, 0, -0.25, 0, P.paper, 1],
+    ['tri', 1.05, 0.42, 0, -0.22, 0, P.terracotta, 1],
+    ['rect', 0.08, 0.5, -0.35, -0.19, 0, P.rust, 1],
+    ['rect', 0.08, 0.5, 0.35, -0.19, 0, P.rust, 1],
+    ['arch', 0.16, 0.42, 0, -0.18, 0, P.ink, 1],
+  ],
+  hanoi_thehuc: [
+    ['arch', 1.3, 0.34, -0.3, 0, 90, P.rust, 1],
+    ['arch', 1.3, 0.34, 0.3, 0, 90, P.rust, -1],
+    ['rect', 1.5, 0.12, 0, 0.02, 0, P.terracotta, 1],
+  ],
+  hanoi_tranquoc: [
+    ['rect', 0.06, 1.3, 0, -0.3, 0, P.mustard, 1],
+    ['tri', 0.46, 1.18, 0, -0.27, 0, P.terracotta, 1],
+    ['rect', 0.32, 1.0, 0, -0.24, 0, P.paper, 1],
+    ['tri', 0.68, 0.85, 0, -0.21, 0, P.rust, 1],
+    ['rect', 0.5, 0.7, 0, -0.18, 0, P.paperShade, 1],
+    ['tri', 0.9, 0.55, 0, -0.15, 0, P.terracotta, 1],
+    ['rect', 0.7, 0.38, 0, -0.12, 0, P.paper, 1],
+  ],
+  hanoi_tubehouse: [
+    ['house', 0.55, 0.95, -0.55, -0.28, 0, P.paper, 1],
+    ['tri', 0.68, 0.5, -0.55, -0.25, 0, P.terracotta, 1],
+    ['house', 0.5, 0.8, 0.55, -0.24, 0, P.paperShade, 1],
+    ['tri', 0.62, 0.42, 0.55, -0.21, 0, P.rust, 1],
+    ['rect', 0.1, 0.32, -0.55, -0.22, 0, P.ink, 1],
+  ],
+  hanoi_tubehouse_b: [
+    ['house', 0.62, 1.0, 0.42, -0.26, 0, P.paper, 1],
+    ['tri', 0.74, 0.55, 0.42, -0.23, 0, P.terracotta, 1],
+    ['rect', 0.2, 0.14, 0.42, -0.2, 0, P.mustard, 1],
+    tree(-0.55, 0.05, 0.85, P.olive),
+  ],
+  hanoi_tubehouse_green: [
+    tree(-0.6, -0.35, 0.9),
+    tree(0.6, 0.3, 0.8, P.olive),
+    ['rect', 0.06, 0.95, 0.55, 0, 0, P.ink, 1],
+    ['rect', 0.2, 0.24, 0.55, 0.02, 0, P.lantern, 1],
+    ['rect', 0.34, 0.22, -0.15, 0.35, 0, P.kraft, 1],
+  ],
+  hanoi_mausoleum: [
+    ['rect', 1.0, 0.95, 0, -0.28, 0, P.brown, 1],
+    ['rect', 0.8, 0.85, 0, -0.25, 0, P.paper, 1],
+    ['rect', 0.95, 0.55, 0, -0.22, 0, P.paperShade, 1],
+    ['rect', 1.1, 0.28, 0, -0.19, 0, P.kraft, 1],
+    ['rect', 0.06, 0.45, -0.25, -0.17, 0, P.ink, 1],
+    ['rect', 0.06, 0.45, 0, -0.17, 0, P.ink, 1],
+    ['rect', 0.06, 0.45, 0.25, -0.17, 0, P.ink, 1],
+  ],
+  hanoi_badinh: [
+    ['rect', 0.07, 1.05, 0, -0.6, 0, P.ink, 1],
+    ['rect', 0.8, 0.16, 0, -0.12, 0, P.paperShade, 1],
+    ['rect', 0.5, 0.3, 0, -0.09, 0, P.kraft, 1],
+    tuft(-0.7, 0.5),
+    tuft(0.7, -0.5),
+  ],
+  hanoi_vanmieu: [
+    ['tri', 0.95, 1.0, 0, -0.28, 0, P.rust, 1],
+    ['rect', 0.72, 0.72, 0, -0.25, 0, P.paper, 1],
+    ['tri', 0.95, 0.42, 0, -0.22, 0, P.terracotta, 1],
+    ['rect', 0.08, 0.55, -0.28, -0.19, 0, P.rust, 1],
+    ['rect', 0.08, 0.55, 0.28, -0.19, 0, P.rust, 1],
+    ['arch', 0.18, 0.42, 0, -0.18, 0, P.ink, 1],
+  ],
+  hanoi_onepillar: [
+    ['tri', 0.68, 1.12, 0, -0.28, 0, P.terracotta, 1],
+    ['rect', 0.5, 0.92, 0, -0.25, 0, P.paper, 1],
+    ['rect', 0.62, 0.34, 0, -0.2, 0, P.paperShade, 1],
+    ['rect', 0.1, 0.26, 0, -0.17, 0, P.ink, 1],
+  ],
+  hanoi_cathedral: [
+    ['tri', 0.32, 1.35, -0.38, -0.28, 0, P.paperShade, 1],
+    ['tri', 0.32, 1.35, 0.38, -0.28, 0, P.paperShade, 1],
+    ['tri', 0.72, 1.0, 0, -0.28, 0, P.terracotta, 1],
+    ['rect', 0.62, 0.72, 0, -0.25, 0, P.paper, 1],
+    ['arch', 0.16, 0.45, 0, -0.22, 0, P.ink, 1],
+  ],
+  hanoi_opera: [
+    ['tri', 1.2, 0.85, 0, -0.28, 0, P.terracotta, 1],
+    ['rect', 1.0, 0.62, 0, -0.25, 0, P.paper, 1],
+    ['arch', 0.2, 0.5, 0, -0.22, 0, P.ink, 1],
+    ['arch', 0.12, 0.36, -0.32, -0.22, 0, P.tealDeep, 1],
+    ['arch', 0.12, 0.36, 0.32, -0.22, 0, P.tealDeep, 1],
+    ['rect', 1.1, 0.16, 0, -0.19, 0, P.paperShade, 1],
+  ],
+  hanoi_longbien: [
+    ['arch', 1.3, 0.34, -0.3, 0, 90, P.brown, 1],
+    ['arch', 1.3, 0.34, 0.3, 0, 90, P.brown, -1],
+    ['rect', 0.08, 0.5, -0.3, 0, 90, P.ink, 1],
+    ['rect', 0.08, 0.5, 0.3, 0, 90, P.ink, 1],
+  ],
 };
 
 function buildPlaceholderTile(id, materials) {
@@ -112,7 +215,7 @@ function buildPlaceholderTile(id, materials) {
 
   const base = new THREE.Mesh(
     new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE).rotateX(-Math.PI / 2),
-    materials.paper({ color: '#ffffff', map: baseTexture(id), side: THREE.FrontSide }),
+    materials.paper({ color: '#ffffff', map: baseTexture(id, (MODELS[id] && MODELS[id].sockets) || (HANOI_MODELS[id] && HANOI_MODELS[id].sockets) || MODELS[FALLBACK_MODEL].sockets), side: THREE.FrontSide }),
   );
   base.name = 'base';
   base.receiveShadow = true;
@@ -344,7 +447,7 @@ export async function loadAssets({ materials, renderer, quality } = {}) {
       }
     }
   }
-  for (const id of MODEL_IDS) {
+  for (const id of [...MODEL_IDS, ...HANOI_MODEL_IDS]) {
     if (!protos.has(id)) {
       if (tilesGltf) warn('tile', id, 'missing in tiles.glb - placeholder');
       protos.set(id, buildPlaceholderTile(id, materials));
@@ -386,7 +489,7 @@ export async function loadAssets({ materials, renderer, quality } = {}) {
     },
     traveller,
     textures,
-    modelIds: [...MODEL_IDS],
+    modelIds: [...MODEL_IDS, ...HANOI_MODEL_IDS],
     source,
     /** public/models/assets_meta.json (per-tile numbers, bridge deck profile, lantern post position) or null. */
     meta,

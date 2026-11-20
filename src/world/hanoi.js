@@ -13,6 +13,7 @@
 // edges - cosmetic only, out of scope for this step.
 // No long dashes in this file: only short hyphens (-).
 import { getTile, socketsOf } from './tiles.js';
+import { getHanoiTile, hanoiSocketsOf } from './hanoi-models.js';
 import { HANOI_SIZE, HANOI_MIN, HANOI_OFFSET, HANOI_ROWS, HANOI_LEGEND, HANOI_LANDMARKS } from './hanoi-map.js';
 
 const COORD_LIMIT = 1 << 24;
@@ -44,10 +45,13 @@ export function createHanoi({ seed = 1 } = {}) {
     const row = HANOI_ROWS[z + HANOI_OFFSET];
     for (let x = HANOI_MIN; x <= MAX; x++) {
       const spec = HANOI_LEGEND[row[x + HANOI_OFFSET]] || HANOI_LEGEND['.'];
-      const t = getTile(spec.tileId);
+      // Step 3: landmark anchors use Hanoi-only models (src/world/hanoi-models.js), never MODELS,
+      // so the WFC solver option count stays at 95; every other cell uses the stock catalogue.
+      const ht = getHanoiTile(spec.tileId);
+      const t = ht || getTile(spec.tileId);
       cells[(z + HANOI_OFFSET) * HANOI_SIZE + (x + HANOI_OFFSET)] = Object.freeze({
         x, z, tileId: t.id, model: t.model, rot: spec.rot,
-        sockets: socketsOf(t.id, spec.rot), tags: t.tags, biome: 'heartland',
+        sockets: ht ? hanoiSocketsOf(spec.tileId, spec.rot) : socketsOf(t.id, spec.rot), tags: t.tags, biome: 'heartland',
         landmarkId: landmarkOf.get(x + ',' + z) || null,
       });
     }

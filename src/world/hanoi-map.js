@@ -4,17 +4,17 @@
 // The traveller spawns at (0, 0), a path_straight on the street just south of Hoan Kiem Lake.
 // No long dashes in this file: only short hyphens (-).
 //
-// Landmark model mapping (v0 stand-ins, all existing models, no new MODELS entries):
-//   hoankiem  - pond cluster + watchtower at (-1, -2) = Turtle Tower, causeway at (-1, -1)
-//   ngocson   - manor at (5, -2) rot 1 (door west) + bridge at (3, -2) over a river channel
-//   vanmieu   - manor at (-8, 11) = Temple of Literature
-//   mausoleum - barn_farm at (-12, 3) + market_square at (-12, 5) = Ba Dinh Square
-//   onepillar - blossom_gazebo at (-8, 4) beside a pond at (-7, 4)
-//   cathedral - church at (7, -1) = St Joseph's Cathedral
-//   longbien  - bridge rot 1 at (17, -6) and (18, -6) over the Red River
-//   westlake  - pond cluster NW + manor at (-9, -11) rot 0 = Tran Quoc Pagoda on the east shore
-//   oldquarter - village / village_b / village_green streets, x -8..2, z -9..-3
-//   opera     - manor at (9, 7) = Hanoi Opera House
+// Landmark model mapping (Step 3 placeholder models, Hanoi-only registry in src/world/hanoi-models.js):
+//   hoankiem  - pond cluster + hanoi_turtletower at (-1, -2) = Turtle Tower, causeway at (-1, -1)
+//   ngocson   - hanoi_ngocson at (5, -2) rot 1 (door west) + hanoi_thehuc at (3, -2) over a river channel
+//   vanmieu   - hanoi_vanmieu at (-8, 11) = Temple of Literature
+//   mausoleum - hanoi_mausoleum at (-12, 3) + hanoi_badinh at (-12, 5) = Ba Dinh Square
+//   onepillar - hanoi_onepillar at (-8, 4) beside a pond at (-7, 4)
+//   cathedral - hanoi_cathedral at (7, -1) = St Joseph's Cathedral
+//   longbien  - hanoi_longbien rot 1 at (17, -6) and (18, -6) over the Red River
+//   westlake  - pond cluster NW + hanoi_tranquoc at (-9, -11) rot 0 = Tran Quoc Pagoda on the east shore
+//   oldquarter - hanoi_tubehouse / hanoi_tubehouse_b / hanoi_tubehouse_green streets, x -8..2, z -9..-3
+//   opera     - hanoi_opera at (9, 7) = Hanoi Opera House
 // The Red River (x 17..18) starts in river_source springs at z = -19 and ends in
 // river_source sinks at z = 18, so no river socket ever faces off the page.
 
@@ -41,7 +41,7 @@ export const HANOI_ROWS = Object.freeze([
   'HFFFFF.....|..o..V........|..........!!H',
   'FF...~~....|..V..v.....s..|...GGGG...!!F',
   'FF.........|..g..g.....!..|...GGGG...!!F',
-  'FH.........|.....~~W~~hB-m|...GGGG...!!F',
+  'FH.........|.....~~W~~hJ-m|...GGGG...!!F',
   'FG.........|.....~~|~~~S..|C..GGGG...!!F',
   'HFGGG..h-a-+-------c-a----+c----f....!!H',
   'FFGGG....|.|.........|....|..........!!F',
@@ -50,11 +50,11 @@ export const HANOI_ROWS = Object.freeze([
   'FH......e|h+p~.,,,,..|,,,,|..........!!F',
   'HG....h-Kb.|...GGG...|GGG.|......R...!!H',
   'FF......||.|...GGG...|GGG.|..........!!F',
-  'FF......gg.|...GGG...|GGG.|..M.......!!F',
+  'FF......gg.|...GGG...|GGG.|..r.......!!F',
   'FF....R..h-+--a------+----c--c--f....!!F',
   'FF.........|..|......|...............!!F',
   'HHFFF......|..|......|........GGGFFF.!!H',
-  'FGFFF......|M.g......|........GGGFFF.!!F',
+  'FGFFF......|t.g......|........GGGFFF.!!F',
   'FFFFF....h-+c-f.R....g.~~.....GGGFFF.!!F',
   'FFFFF......g.............R.......FFF.!!F',
   'FF..............,,,,,..GGGG.GGG...HHH!!F',
@@ -72,6 +72,9 @@ export const HANOI_ROWS = Object.freeze([
 //   path_end rot 0 = socket at S, 1 = at W, 2 = at N, 3 = at E (the socket faces the street it ends).
 //   river_source rot 0 = river at S, 1 = at W, 2 = at N, 3 = at E. bridge rot 1 = path E-W over N-S river.
 //   manor / church / watchtower / blossom_gazebo rot 0 = path socket at S, rot 1 = at W.
+//   The Step 3 Hanoi placeholders keep the same sockets at the same rot, so this still holds.
+//   Hanoi legend chars: W turtletower, M tranquoc, m ngocson, r opera, t vanmieu, C cathedral,
+//   K badinh, A mausoleum, p onepillar, B longbien, J thehuc, V/v/o/U/u/O tubehouse family.
 export const HANOI_LEGEND = Object.freeze({
   '.': { tileId: 'meadow', rot: 0 },
   ',': { tileId: 'meadow_flowers', rot: 0 },
@@ -107,22 +110,25 @@ export const HANOI_LEGEND = Object.freeze({
   S: { tileId: 'river_source', rot: 2 },
   w: { tileId: 'river_source', rot: 1 },
   E: { tileId: 'river_source', rot: 3 },
-  B: { tileId: 'bridge', rot: 1 },
+  B: { tileId: 'hanoi_longbien', rot: 1 },
+  J: { tileId: 'hanoi_thehuc', rot: 1 },
   '^': { tileId: 'bridge', rot: 0 },
-  W: { tileId: 'watchtower', rot: 0 },
-  M: { tileId: 'manor', rot: 0 },
-  m: { tileId: 'manor', rot: 1 },
-  C: { tileId: 'church', rot: 0 },
-  K: { tileId: 'market_square', rot: 0 },
-  A: { tileId: 'barn_farm', rot: 0 },
+  W: { tileId: 'hanoi_turtletower', rot: 0 },
+  M: { tileId: 'hanoi_tranquoc', rot: 0 },
+  m: { tileId: 'hanoi_ngocson', rot: 1 },
+  r: { tileId: 'hanoi_opera', rot: 0 },
+  t: { tileId: 'hanoi_vanmieu', rot: 0 },
+  C: { tileId: 'hanoi_cathedral', rot: 0 },
+  K: { tileId: 'hanoi_badinh', rot: 0 },
+  A: { tileId: 'hanoi_mausoleum', rot: 0 },
   P: { tileId: 'blossom_gazebo', rot: 0 },
-  p: { tileId: 'blossom_gazebo', rot: 1 },
-  V: { tileId: 'village', rot: 0 },
-  v: { tileId: 'village_b', rot: 0 },
-  o: { tileId: 'village_green', rot: 0 },
-  U: { tileId: 'village', rot: 1 },
-  u: { tileId: 'village_b', rot: 1 },
-  O: { tileId: 'village_green', rot: 1 },
+  p: { tileId: 'hanoi_onepillar', rot: 1 },
+  V: { tileId: 'hanoi_tubehouse', rot: 0 },
+  v: { tileId: 'hanoi_tubehouse_b', rot: 0 },
+  o: { tileId: 'hanoi_tubehouse_green', rot: 0 },
+  U: { tileId: 'hanoi_tubehouse', rot: 1 },
+  u: { tileId: 'hanoi_tubehouse_b', rot: 1 },
+  O: { tileId: 'hanoi_tubehouse_green', rot: 1 },
   y: { tileId: 'house', rot: 0 },
 });
 
