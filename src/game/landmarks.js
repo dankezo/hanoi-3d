@@ -28,7 +28,7 @@ const MAP_REDRAW_S = 0.2;
 const MAP_CELLS = 40; // the Hanoi page is 40x40, coords -20..19
 const MAP_MIN = -20;
 // explored-cell tones, same patchwork as the atlas map (src/game/atlasmap.js BIOME_GROUND)
-const GROUND = { heartland: '#c3c084', desert: '#e3c68f', snow: '#e7ecef', blossom: '#cdd596', pinewood: '#8fa07a' };
+const GROUND = { heartland: '#c3c084', desert: '#e3c68f', snow: '#e7ecef', blossom: '#cdd596', pinewood: '#8fa07a', hanoi: '#d3b078' };
 const PAPER = '#efe0c2';
 const INK = '#5a3a28';
 const TERRA = '#b9603f';
