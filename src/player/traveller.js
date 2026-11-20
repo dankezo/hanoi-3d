@@ -69,7 +69,51 @@ function addPlaceholderLimbs(model, materials) {
   limb('arm_r', 0.06, H * 0.3, -0.1, H * 0.63, 0, cream);
 }
 
-export function createTraveller({ scene, assets, world, materials }) {
+/** Step 6 (Hanoi flavour): a small conical straw hat (non la) for Hanoi mode only: a cone on a flat
+ * brim disc, built from the game's own paper material. It is parented to the head part (so it nods
+ * with the head) or to the model when no head part was found - never to the world. The placeholder's
+ * flat ink triangle hat is hidden in Hanoi mode so the traveller wears one hat only; the glTF
+ * traveller has no hat node, so nothing is hidden there. */
+function addConicalHat(model, parts, materials) {
+  const H = CONFIG.TRAVELLER_HEIGHT;
+  const pal = CONFIG.palette || {};
+  const straw = pal.mustard || '#dca848';
+  const strawDark = pal.ochre || '#d9a441';
+  const hat = new THREE.Group();
+  hat.name = 'hanoi_hat';
+  const brim = new THREE.Mesh(
+    new THREE.CylinderGeometry(H * 0.32, H * 0.32, 0.008, 24),
+    materials.paper({ color: strawDark, side: THREE.DoubleSide }),
+  );
+  brim.name = 'hanoi_hat_brim';
+  const cone = new THREE.Mesh(
+    new THREE.ConeGeometry(H * 0.27, H * 0.16, 24),
+    materials.paper({ color: straw, side: THREE.DoubleSide }),
+  );
+  cone.name = 'hanoi_hat_cone';
+  cone.position.y = H * 0.08 + 0.004; // base sits on the brim, apex up
+  brim.castShadow = true;
+  cone.castShadow = true;
+  hat.add(brim);
+  hat.add(cone);
+  // hide the placeholder's flat triangle hat (the glTF traveller has no hat node)
+  model.traverse((o) => { if (o.name === 'hat') o.visible = false; });
+  const head = parts && parts.head;
+  if (head && head.part && head.box) {
+    // top of the head in rig space, converted into the head part's local space
+    const top = new THREE.Vector3((head.box.min.x + head.box.max.x) / 2, head.box.max.y, (head.box.min.z + head.box.max.z) / 2);
+    head.part.updateWorldMatrix(true, false);
+    head.part.worldToLocal(top);
+    hat.position.copy(top);
+    hat.position.y += 0.004;
+    head.part.add(hat);
+  } else {
+    hat.position.set(0, H * 0.96, 0);
+    model.add(hat);
+  }
+}
+
+export function createTraveller({ scene, assets, world, materials, hanoi }) {
   const C = CONFIG.player;
   const group = new THREE.Group();
   group.name = 'traveller-root';
@@ -157,6 +201,11 @@ export function createTraveller({ scene, assets, world, materials }) {
   rig.add(model);
   group.add(rig);
   scene.add(group);
+
+  // Step 6: conical hat (non la) in Hanoi mode only; the hat is optional, never fatal.
+  if (hanoi && materials && materials.paper) {
+    try { addConicalHat(model, parts, materials); } catch (err) { /* the hat is optional */ }
+  }
 
   // ---- state ------------------------------------------------------------------------------------
   const velocity = new THREE.Vector3();
