@@ -1,5 +1,5 @@
 // Pop-up Atlas composition root.
-// URL params: ?seed=N  ?quality=low|med|high  ?mute=1  ?hint=0  ?night=1  ?life=0  ?animals=0
+// URL params: ?seed=N  ?quality=low|med|high  ?mute=1  ?hint=0  ?night=1  ?life=0  ?animals=0  ?map=hanoi
 import * as THREE from 'three';
 import { CONFIG, QUALITY, TILE_SIZE } from './core/config.js';
 import { bus } from './core/events.js';
@@ -7,6 +7,7 @@ import { state } from './core/state.js';
 import { createLoop } from './core/loop.js';
 import { loadAssets } from './assets/loader.js';
 import { createWFC } from './world/wfc.js';
+import { createHanoi } from './world/hanoi.js';
 import { createWorld } from './world/world.js';
 import { createTraveller } from './player/traveller.js';
 import { createControls } from './player/controls.js';
@@ -45,7 +46,7 @@ async function boot() {
   const assets = await loadAssets({ materials, renderer, quality });
   materials.setTextures(assets.textures);
   const lights = createLights({ scene, quality });
-  const wfc = createWFC({ seed });
+  const wfc = params.get('map') === 'hanoi' ? createHanoi({ seed }) : createWFC({ seed });
   const world = createWorld({ scene, assets, wfc, materials, quality });
   const traveller = createTraveller({ scene, assets, world, materials });
   const follow = createFollowCamera({ aspect: window.innerWidth / Math.max(1, window.innerHeight) });
