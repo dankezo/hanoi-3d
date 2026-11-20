@@ -1,4 +1,4 @@
-name: Deploy Papertrails
+name: Deploy Hanoi 3D
 on:
   push:
     branches: [main]
