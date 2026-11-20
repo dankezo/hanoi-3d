@@ -1,9 +1,9 @@
 {
-  "name": "papertrails",
+  "name": "hanoi-3d",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Papertrails - a paper traveller walks across an endless pop-up book (Three.js walking toy)",
+  "description": "Hanoi 3D - a paper traveller walks across a pop-up Hanoi (Three.js walking toy)",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

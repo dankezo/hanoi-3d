@@ -1,9 +1,11 @@
-# Papertrails
+# Hanoi 3D
 
-[Play Papertrails](https://xikhar.github.io/papertrails/)
+Fork of [xikhar/papertrails](https://github.com/xikhar/papertrails) (MIT licence), rebuilt as a pop-up paper Hanoi.
 
-<img src="screenshots/hero.png" alt="Papertrails — a traveller exploring the paper world" width="100%">
+[Play Hanoi 3D](https://dankezo.github.io/hanoi-3d/)
 
-<img src="screenshots/village.png" alt="Papertrails — the paper village by day" width="100%">
+<img src="screenshots/hero.png" alt="Hanoi 3D - a traveller exploring the paper world" width="100%">
 
-<img src="screenshots/village-night.png" alt="Papertrails — the village illuminated at night" width="100%">
+<img src="screenshots/village.png" alt="Hanoi 3D - the paper village by day" width="100%">
+
+<img src="screenshots/village-night.png" alt="Hanoi 3D - the village illuminated at night" width="100%">
