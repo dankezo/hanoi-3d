@@ -46,7 +46,8 @@ async function boot() {
   const assets = await loadAssets({ materials, renderer, quality });
   materials.setTextures(assets.textures);
   const lights = createLights({ scene, quality });
-  const wfc = params.get('map') === 'hanoi' ? createHanoi({ seed }) : createWFC({ seed });
+  const hanoi = params.get('map') === 'hanoi';
+  const wfc = hanoi ? createHanoi({ seed }) : createWFC({ seed });
   const world = createWorld({ scene, assets, wfc, materials, quality });
   const traveller = createTraveller({ scene, assets, world, materials });
   const follow = createFollowCamera({ aspect: window.innerWidth / Math.max(1, window.innerHeight) });
@@ -61,7 +62,7 @@ async function boot() {
   // living animals (cats, sheep, hens, ducks ...): cut-paper cards on risen tiles, 2 draw calls; ?animals=0 disables them
   const animals = params.get('animals') === '0' || CONFIG.animals.enabled === false ? null : createAnimals({ scene, renderer, world, wfc, traveller, daynight, assets, seed, quality });
   // Gameplay progress is saved independently for each world seed.
-  const game = createGame({ scene, renderer, world, wfc, traveller, follow, controls, lights, post, daynight, music, audio, life, assets, materials, seed, quality });
+  const game = createGame({ scene, renderer, world, wfc, traveller, follow, controls, lights, post, daynight, music, audio, life, assets, materials, seed, quality, hanoi });
   follow.setAssistGate(game.modal);
   // N: day / night, M: music on / off (keys only - no on-screen UI)
   window.addEventListener('keydown', (e) => {
