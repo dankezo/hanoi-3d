@@ -43,13 +43,13 @@ async function boot() {
   const scene = new THREE.Scene();
   const { renderer, setSize: setRendererSize } = createRenderer({ canvas, quality });
   const materials = createMaterials({ quality });
-  const assets = await loadAssets({ materials, renderer, quality });
+  const hanoi = params.get('map') === 'hanoi';
+  const assets = await loadAssets({ materials, renderer, quality, hanoi });
   materials.setTextures(assets.textures);
   const lights = createLights({ scene, quality });
-  const hanoi = params.get('map') === 'hanoi';
   const wfc = hanoi ? createHanoi({ seed }) : createWFC({ seed });
   const world = createWorld({ scene, assets, wfc, materials, quality });
-  const traveller = createTraveller({ scene, assets, world, materials });
+  const traveller = createTraveller({ scene, assets, world, materials, hanoi });
   const follow = createFollowCamera({ aspect: window.innerWidth / Math.max(1, window.innerHeight) });
   const controls = createControls({ domElement: canvas, camera: follow.camera, traveller });
   const views = createViews({ follow }); // V cycles camera views
