@@ -401,7 +401,7 @@ async function loadTextures(A, anisotropy) {
  *   textures:Record<string,any>, modelIds:string[], source:'placeholder'|'gltf'|'mixed',
  *   meta:object|null, warnings:string[], stats:object}>}
  */
-export async function loadAssets({ materials, renderer, quality } = {}) {
+export async function loadAssets({ materials, renderer, quality, hanoi = false } = {}) {
   const A = CONFIG.assets;
   const caps = renderer && renderer.capabilities;
   const anisotropy = Math.min(8, (caps && caps.getMaxAnisotropy && caps.getMaxAnisotropy()) || 4);
@@ -417,8 +417,8 @@ export async function loadAssets({ materials, renderer, quality } = {}) {
   };
   const noTex = () => ({ paper: null, paperNormal: null, paperRough: null, manifest: null });
 
-  const [tilesGltf, travGltf, textures, meta] = await Promise.all([
-    loadGLTF(A.tilesUrl), loadGLTF(A.travellerUrl), loadTextures(A, anisotropy).catch(noTex), fetchJSON(A.metaUrl),
+  const [tilesGltf, hanoiGltf, travGltf, textures, meta] = await Promise.all([
+    loadGLTF(A.tilesUrl), hanoi ? loadGLTF(A.hanoiTilesUrl) : Promise.resolve(null), loadGLTF(A.travellerUrl), loadTextures(A, anisotropy).catch(noTex), fetchJSON(A.metaUrl),
   ]);
 
   const protos = new Map();
@@ -442,6 +442,28 @@ export async function loadAssets({ materials, renderer, quality } = {}) {
         protos.set(id, node);
         stats.tiles[id] = st;
         fromGltf++;
+      } catch (err) {
+        warn('tile', id, 'failed:', err && err.message);
+      }
+    }
+  }
+  if (hanoiGltf && hanoiGltf.scene) {
+    const byName = new Map();
+    for (const c of [...hanoiGltf.scene.children]) byName.set(c.name, c);
+    for (const id of HANOI_MODEL_IDS) {
+      const node = byName.get(id);
+      if (!node) continue;
+      try {
+        node.removeFromParent();
+        node.position.set(0, 0, 0); node.quaternion.identity(); node.scale.set(1, 1, 1);
+        const st = adopt(node, id + '__', mats);
+        const base = node.getObjectByName('base');
+        if (!base || st.hinges === 0) { warn('tile', id, 'has no base / flaps in hanoi-tiles.glb - using placeholder'); continue; }
+        node.name = id;
+        node.userData.model = id;
+        node.updateMatrixWorld(true);
+        protos.set(id, node);
+        stats.tiles[id] = st;
       } catch (err) {
         warn('tile', id, 'failed:', err && err.message);
       }
