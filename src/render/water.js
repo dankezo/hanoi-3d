@@ -58,6 +58,7 @@ export const WATER_DEFAULTS = {
     snow: ['#b7c8de', '#8fa6c6', '#f8f9fc', '#f6f8fc'],
     blossom: ['#72c2ae', '#218a82', '#f6e4cc', '#f4a3b3'],
     pinewood: ['#58988a', '#1f5f5c', '#cfc49c', '#c7933d'],
+    hanoi: ['#79c9b8', '#238a86', '#f6e6bc', '#dc9440'], // Step 6: clearer teal lakes for the Hanoi map
   },
 };
 export const GROUND_DEFAULTS = {
