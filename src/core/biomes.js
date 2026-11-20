@@ -10,9 +10,11 @@
 //   snow       snowy pines, cabins, frozen ponds             (snowfall, cool light)
 //   blossom    spring green, pink blossom trees, gardens     (petals, butterflies)
 //   pinewood   dark misty conifer forest, mushrooms, marsh   (light rain / mist, fireflies at night)
+//   hanoi      the Hanoi map only, never from the Voronoi: Hanoi cells carry it directly
+//              (terracotta roofs, teal lakes, warm paper base - Step 6, ?map=hanoi only)
 
-export const BIOMES = ['heartland', 'desert', 'snow', 'blossom', 'pinewood'];
-export const BIOME_INDEX = { heartland: 0, desert: 1, snow: 2, blossom: 3, pinewood: 4 };
+export const BIOMES = ['heartland', 'desert', 'snow', 'blossom', 'pinewood', 'hanoi'];
+export const BIOME_INDEX = { heartland: 0, desert: 1, snow: 2, blossom: 3, pinewood: 4, hanoi: 5 };
 /** Grid pitch of the Voronoi sites, in tiles. */
 export const BIOME_SITE = 11;
 
