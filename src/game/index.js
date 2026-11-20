@@ -3,16 +3,17 @@
 //   create<Feature>(ctx) -> { update(dt), settle(), dispose(), ...own API }
 // ctx = { scene, renderer, world, wfc, traveller, follow, controls, lights, post, daynight, music, audio, life, assets,
 //         materials, progress, seed, quality, game }  (ctx.game = this object: features may call each other through it)
-// update order each tick (after world/life update): explore tracking -> scraps -> lanterns -> atlasmap.
+// update order each tick (after world/life update): explore tracking -> scraps -> lanterns -> atlasmap -> landmarks (Hanoi only).
 import { TILE_SIZE } from '../core/config.js';
 import { biomeAt } from '../core/biomes.js';
 import { createProgress } from './progress.js';
 import { createScraps } from './scraps.js';
 import { createLanterns } from './lanterns.js';
 import { createAtlasMap } from './atlasmap.js';
+import { createLandmarks } from './landmarks.js';
 
 export function createGame(deps) {
-  const { seed, traveller, persist = true } = deps;
+  const { seed, traveller, persist = true, hanoi = false } = deps;
   const progress = createProgress({ seed, persist });
   const game = { progress };
   // Nothing is lit before the traveller has taken his first steps: the start tile sits next to a market
@@ -24,7 +25,11 @@ export function createGame(deps) {
   game.scraps = createScraps(ctx);
   game.lanterns = createLanterns(ctx);
   game.atlasmap = createAtlasMap(ctx);
+  // Hanoi only (?map=hanoi): landmark discovery + checklist + toast + minimap. The WFC world
+  // never creates this module, so it shows no checklist, no toast and no minimap.
+  game.landmarks = hanoi ? createLandmarks(ctx) : null;
   const parts = [game.scraps, game.lanterns, game.atlasmap];
+  if (game.landmarks) parts.push(game.landmarks);
   let lastCx = NaN;
   let lastCz = NaN;
 
