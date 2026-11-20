@@ -185,6 +185,16 @@ export const animals = {
       rocks: [['fox', 0.25, 1, 1, ''], ['owl', 0.4, 1, 1, 'np'], ['squirrel', 0.3, 1, 1, 'd']],
       hills: [['deer', 0.25, 1, 2, 'h'], ['rabbit', 0.2, 1, 1, '']],
     },
+    // Step 6 (Hanoi flavour): Hanoi cells carry biome 'hanoi', so the heartland rows for the open-ground
+    // models are mirrored here - same animals (cats, ducks via the spawns.all pond / river rows, sheep,
+    // hens, songbirds). No desert / snow / pinewood species: no desert, snow or pinewood tile exists on
+    // the Hanoi map, and the desert / snow model rows in spawns.all can never fire there either.
+    hanoi: {
+      meadow: [['sheep', 0.6, 2, 4, 'h', 'in:fence_pad', [0.24, 0.02, 0.26]], ['cat', 0.3, 1, 1, '', 'on:fence_pad'], ['lamb', 0.1, 1, 1, ''], ['cow', 0.09, 1, 2, 'h'], ['rabbit', 0.14, 1, 2, '']],
+      meadow_flowers: [['rabbit', 0.2, 1, 2, ''], ['sheep', 0.15, 2, 3, 'h'], ['songbird', 0.2, 2, 3, 'dh']],
+      hills: [['sheep', 0.22, 2, 3, 'h'], ['rabbit', 0.2, 1, 1, '']],
+      rocks: [['rabbit', 0.2, 1, 1, ''], ['fox', 0.12, 1, 1, '']],
+    },
   },
 
   /** Mesh names of a tile model an owl may perch on (first match by hash), and the height window of their tops. */

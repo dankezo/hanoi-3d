@@ -130,6 +130,15 @@ export const world = {
       prop: { hue: 34, sat: 0.85, tint: '#4d7468', amount: 0.36, gain: 1.5, lift: 0.4, mul: 0.92, keepWater: 0.7 },
       path: { color: '#c2b187', edge: '#5d5b3e', amount: 0.75, edgeAmount: 0.3 }, // pine-needle track: the one warm line in the teal wood
     },
+    // Step 6 (Hanoi flavour, ?map=hanoi only): Hanoi cells carry biome 'hanoi', so this entry colours
+    // the whole Hanoi map and nothing else - the default WFC world never has a hanoi cell. Warm paper
+    // base kept (mild ground wash), terracotta push on the risen paper (roofs read terracotta),
+    // terracotta-cream streets; keepWater 0.9 leaves the teal lakes (water palette, render/water.js) alone.
+    hanoi: {
+      ground: { hue: -6, sat: 1.06, tint: '#d9a06a', amount: 0.32, gain: 1.0, lift: 0.5, keepWater: 0.9 },
+      prop: { hue: 4, sat: 1.06, tint: '#b9603f', amount: 0.3, gain: 1.1, lift: 0.3, keepWater: 0.9 },
+      path: { color: '#eec39a', edge: '#a06a4a', amount: 0.7, edgeAmount: 0.3 },
+    },
   },
 };
 
