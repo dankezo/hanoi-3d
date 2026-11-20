@@ -25,7 +25,8 @@
     <style>
       html, body { cursor: none; margin: 0; height: 100%; overflow: hidden; background: #1c130d; }
       canvas#atlas { cursor: none; position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
-      /* The only on-screen text allowed: a plain fading hint. No panels, no buttons. */
+      /* The only on-screen text in the WFC world: a plain fading hint. No panels, no buttons.
+         Hanoi mode (?map=hanoi) adds the landmark list, toast and mini map below. */
       #hint {
         position: fixed; left: 0; right: 0; bottom: 4.5vh; text-align: center;
         font: 500 13px/1 Georgia, 'Times New Roman', serif; letter-spacing: 0.14em;
@@ -33,11 +34,55 @@
         pointer-events: none; user-select: none; opacity: 0; transition: opacity 1.4s ease;
       }
       #hint.on { opacity: 1; }
+      /* Landmarks (Hanoi mode only): hidden until body.hanoi. Paper card, ink text, minimal. */
+      #lm-list, #lm-toast, #lm-map { display: none; }
+      body.hanoi #lm-list {
+        display: block; position: fixed; top: 12px; left: 12px; z-index: 5; width: 200px;
+        background: rgba(239, 224, 194, 0.94); border: 1px solid rgba(90, 58, 40, 0.5); border-radius: 3px;
+        box-shadow: 0 2px 10px rgba(20, 10, 0, 0.35); color: #5a3a28;
+        font-family: Georgia, 'Times New Roman', serif;
+      }
+      #lm-head {
+        display: flex; justify-content: space-between; align-items: baseline; width: 100%;
+        padding: 7px 10px; background: none; border: 0; border-bottom: 1px solid rgba(90, 58, 40, 0.25);
+        font: 600 12px/1.2 Georgia, 'Times New Roman', serif; letter-spacing: 0.12em; text-transform: uppercase; color: #5a3a28;
+      }
+      #lm-head b { letter-spacing: 0.05em; }
+      #lm-list.closed #lm-items { display: none; }
+      #lm-list.closed #lm-head { border-bottom: 0; }
+      #lm-items { list-style: none; margin: 0; padding: 4px 10px 7px; font-size: 12px; line-height: 1.4; }
+      #lm-items li { display: flex; gap: 6px; padding: 2px 0; opacity: 0.55; }
+      #lm-items li.done { opacity: 1; }
+      #lm-items .mk { width: 12px; flex: none; color: #b9603f; text-align: center; }
+      #lm-items li:not(.done) .mk { color: rgba(90, 58, 40, 0.4); }
+      #lm-items .tx i { font-size: 11px; opacity: 0.75; }
+      body.hanoi #lm-toast {
+        display: block; position: fixed; left: 50%; bottom: 11vh; z-index: 6; padding: 8px 14px;
+        background: rgba(239, 224, 194, 0.96); border: 1px solid rgba(90, 58, 40, 0.5); border-radius: 3px;
+        box-shadow: 0 2px 10px rgba(20, 10, 0, 0.35); color: #5a3a28;
+        font: 500 13px/1.45 Georgia, 'Times New Roman', serif; text-align: center; pointer-events: none;
+        opacity: 0; visibility: hidden; transform: translateX(-50%) translateY(6px);
+        transition: opacity 0.35s ease, visibility 0.35s, transform 0.35s ease;
+      }
+      body.hanoi #lm-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+      body.hanoi #lm-toast b { display: block; letter-spacing: 0.04em; }
+      body.hanoi #lm-toast span { display: block; font-style: italic; opacity: 0.8; font-size: 12px; }
+      body.hanoi #lm-map {
+        display: block; position: fixed; right: 12px; bottom: 12px; z-index: 5; width: 132px; height: 132px;
+        border: 1px solid rgba(90, 58, 40, 0.5); border-radius: 3px;
+        box-shadow: 0 2px 10px rgba(20, 10, 0, 0.35); background: rgba(239, 224, 194, 0.92); pointer-events: none;
+      }
     </style>
   </head>
   <body>
     <canvas id="atlas" tabindex="0"></canvas>
     <div id="hint">WASD / click to walk &nbsp;·&nbsp; Shift run &nbsp;·&nbsp; Ctrl slow &nbsp;·&nbsp; Tab map &nbsp;·&nbsp; N night &nbsp;·&nbsp; M music &nbsp;·&nbsp; V view</div>
+    <div id="lm-list">
+      <button id="lm-head" type="button"><span>Hanoi</span><b id="lm-count">0/10</b><span id="lm-caret">-</span></button>
+      <ul id="lm-items"></ul>
+    </div>
+    <div id="lm-toast" role="status" aria-live="polite"></div>
+    <canvas id="lm-map" width="160" height="160" aria-label="Mini map"></canvas>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
