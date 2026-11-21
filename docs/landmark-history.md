@@ -107,6 +107,34 @@ https://en.wikipedia.org/wiki/West_Lake_(Hanoi)
 
 ---
 
+## tranquoc - Tran Quoc Pagoda / Chua Tran Quoc
+
+### History (EN)
+
+- The oldest pagoda in Hanoi, founded in the 6th century under Emperor Ly Nam De as Khai Quoc Pagoda, on the bank of the Red River.
+- In 1615 the pagoda was moved onto a small islet at the south-east end of West Lake, where it stands today, reached from the shore by a low stone bridge.
+- Its 11-storey hexagonal tower is the pagoda's highest point: the tiers shrink as they rise, each with six arched openings, topped by a spire.
+
+### History (VI)
+
+- Ngoi chua co nhat Ha Noi, dung tu the ky 6 duoi thoi Ly Nam De voi ten Khai Quoc, tren bo song Hong.
+- Nam 1615 chua duoc doi ra mot dao nho o dau dong nam ho Tay, noi no dung den nay, noi voi bo bang mot cay cau da thap.
+- Bao thap luc giac 11 tang la diem cao nhat cua chua: cac tang thu nho dan khi len cao, moi tang co sau cua vom, dinh la ngon thap.
+
+### Fun fact (EN)
+
+The bodhi tree shading the pagoda courtyard grew from a cutting of the Bodhi tree at Bodh Gaya in India, a gift from President Rajendra Prasad during his visit in 1959.
+
+### Fun fact (VI)
+
+Cay bo de toa bong trong san chua moc tu mot canh chiet cua cay bo de o Bodh Gaya, An Do - mon qua cua Tong thong Rajendra Prasad khi tham Viet Nam nam 1959.
+
+### Source
+
+https://en.wikipedia.org/wiki/West_Lake_(Hanoi)
+
+---
+
 ## oldquarter - Old Quarter / Pho Co Ha Noi
 
 ### History (EN)

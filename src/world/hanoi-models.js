@@ -16,8 +16,11 @@ const S = (n, e, s, w) => ({ n, e, s, w });
 
 /** id -> { sockets (rot 0), tags }. Same shape as MODELS entries, Hanoi-only. */
 export const HANOI_MODELS = Object.freeze({
-  // Turtle Tower on Hoan Kiem Lake (was watchtower, rot 0).
-  hanoi_turtletower: { sockets: S(g, g, p, g), tags: ['path', 'landmark', 'blocker'] },
+  // Turtle Tower on Hoan Kiem Lake (was watchtower, rot 0). Phase 3B: the tower now
+  // stands on a 1-cell island mid-lake, so its sockets are the all-grass sockets of
+  // the pond cell it replaces (the old south path socket met the shore path, which
+  // the new lake floods). Tags unchanged.
+  hanoi_turtletower: { sockets: S(g, g, g, g), tags: ['path', 'landmark', 'blocker'] },
   // Ngoc Son Temple (was manor, rot 1, door west).
   hanoi_ngocson: { sockets: S(g, g, p, g), tags: ['path', 'house', 'landmark', 'blocker'] },
   // The Huc Bridge, red (was bridge, rot 1, path E-W over river N-S).
@@ -69,6 +72,54 @@ export const HANOI_MODELS = Object.freeze({
   hanoi_pole: { sockets: S(g, g, g, g), tags: ['village'] },
   // Street lamp (was meadow, all grass).
   hanoi_lamp: { sockets: S(g, g, g, g), tags: ['village'] },
+  // ---- Phase 3A street elements (vibe Ha Noi that). Each copies the sockets + tags of the
+  // cell it replaces, so the authored grid stays socket-consistent (0 mismatches) by
+  // construction. All 16 are Hanoi-only: the WFC solver option count stays at 95.
+  // Corner house at the Ta Hien junction (was path_cross, rot 0, all path, walkable).
+  hanoi_cornerhouse: { sockets: S(p, p, p, p), tags: ['path'] },
+  // Beer signs, the 4-sign set from photo A1 (was meadow, all grass).
+  hanoi_sign_phoco: { sockets: S(g, g, g, g), tags: ['village'] },
+  hanoi_sign_biahoi: { sockets: S(g, g, g, g), tags: ['village'] },
+  hanoi_sign_trucbach: { sockets: S(g, g, g, g), tags: ['village'] },
+  hanoi_sign_paramount: { sockets: S(g, g, g, g), tags: ['village'] },
+  // Red flag with yellow star (was meadow, all grass; base print is granite like a sidewalk).
+  hanoi_flag: { sockets: S(g, g, g, g), tags: ['village'] },
+  // Red vertical banner "30-4" (was meadow, all grass; granite base print).
+  hanoi_banner: { sockets: S(g, g, g, g), tags: ['village'] },
+  // Sau tree with golden leaves (was meadow, all grass).
+  hanoi_sautree: { sockets: S(g, g, g, g), tags: [] },
+  // Parked motorbikes, one model per colour (was meadow, all grass; granite base print).
+  hanoi_bike_red: { sockets: S(g, g, g, g), tags: ['village'] },
+  hanoi_bike_blue: { sockets: S(g, g, g, g), tags: ['village'] },
+  hanoi_bike_black: { sockets: S(g, g, g, g), tags: ['village'] },
+  // Folk-painting mural wall, 2 tiles long (was meadow, all grass).
+  hanoi_mural: { sockets: S(g, g, g, g), tags: [] },
+  // Narrow west alley, houses tight on both sides (was meadow, all grass).
+  hanoi_alley: { sockets: S(g, g, g, g), tags: [] },
+  // Street vendor on the main street (was village_green rot 1, path E-W, walkable).
+  hanoi_vendor_street: { sockets: S(p, g, p, g), tags: ['path', 'village'] },
+  // Pho stall on the main street (was village rot 1, path E-W, walkable).
+  hanoi_phostall_street: { sockets: S(p, g, p, g), tags: ['path', 'village'] },
+  // Electric pole on the house row (was village rot 0, path N-S, blocker like a tubehouse).
+  hanoi_pole_street: { sockets: S(p, g, p, g), tags: ['path', 'house', 'village', 'blocker'] },
+  // ---- Phase 3B lake models (Ho Guom + Ho Tay). Each copies the sockets + tags of the
+  // cell it replaces, so the authored grid stays socket-consistent (0 mismatches) by
+  // construction. All 6 are Hanoi-only: the WFC solver option count stays at 95.
+  // Ho Guom pond, dark green water (was pond, all grass, water + blocker).
+  hanoi_pond_guom: { sockets: S(g, g, g, g), tags: ['water', 'blocker'] },
+  // Ho Tay pond, deep blue water (was pond, all grass, water + blocker).
+  hanoi_pond_tay: { sockets: S(g, g, g, g), tags: ['water', 'blocker'] },
+  // Lotus pond in the south-west corner of Ho Tay (was pond, all grass, water + blocker).
+  hanoi_lotus: { sockets: S(g, g, g, g), tags: ['water', 'blocker'] },
+  // Low stone bridge to the Tran Quoc islet (was pond; sockets copy path_straight
+  // rot 0, walkable - the traveller crosses it to reach the pagoda). The legend rot 1
+  // turns it E-W at placement, like the stock bridge it replaces.
+  hanoi_stonebridge: { sockets: S(p, g, p, g), tags: ['path'] },
+  // Pen Tower on the north-east shore of Ho Guom (was village rot 1 on the main
+  // street; sockets copy watchtower rot 3, path socket east toward the street).
+  hanoi_pentower: { sockets: S(g, g, p, g), tags: ['path', 'landmark', 'blocker'] },
+  // Mausoleum side wing, second tile of the 2-tile mausoleum (was meadow, all grass).
+  hanoi_mausoleum_wing: { sockets: S(g, g, g, g), tags: ['landmark', 'blocker'] },
 });
 
 export const HANOI_MODEL_IDS = Object.freeze(Object.keys(HANOI_MODELS));

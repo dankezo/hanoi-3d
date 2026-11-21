@@ -9,7 +9,7 @@
 // dataset is the fallback: the game never breaks because the edge is down.
 //
 // The edge data is validated before use: the map must be a 40x40 grid with
-// the 10 real landmark ids, and the history must carry all 10 real ids with
+// the 11 real landmark ids, and the history must carry all 11 real ids with
 // non-empty strings. Canary ids are never valid edge data: validLandmarksData
 // rejects any entry whose id starts with "canary-".
 //
@@ -23,7 +23,7 @@ export const EDGE_API_URL = '';
 /** How long to wait for the edge before falling back to the bundled dataset. */
 export const EDGE_TIMEOUT_MS = 3000;
 
-/** The 10 real landmark ids, in checklist order. */
+/** The 11 real landmark ids, in checklist order. */
 export const EDGE_LANDMARK_IDS = Object.freeze(Object.keys(LANDMARK_INFO));
 
 /** True when an edge URL is set (non-empty string). */
@@ -95,7 +95,7 @@ export function validMapData(d) {
 /** True when the edge /api/landmarks payload has the shape the game needs. */
 export function validLandmarksData(d) {
   if (!d || typeof d !== 'object') return false;
-  if (!Array.isArray(d.landmarks) || d.landmarks.length !== 10) return false;
+  if (!Array.isArray(d.landmarks) || d.landmarks.length !== 11) return false;
   const seen = new Set();
   for (const e of d.landmarks) {
     if (!e || typeof e !== 'object') return false;
@@ -111,7 +111,7 @@ export function validLandmarksData(d) {
       for (const line of e[k]) if (typeof line !== 'string' || line.length === 0) return false;
     }
   }
-  return seen.size === 10;
+  return seen.size === 11;
 }
 
 /** The bundled dataset, in edge shape: the fallback, and the default. */

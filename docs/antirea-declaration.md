@@ -13,7 +13,7 @@ API serves the same text (plus a hash-chained log) at `GET /api/provenance`.
   Wikipedia and official Vietnamese tourism / heritage sources, see
   `docs/landmark-history.md` for the per-landmark source links)
 - Dataset: the Hanoi map (40x40 grid + landmark positions,
-  `src/world/hanoi-map.js`) and the 10 landmark histories
+  `src/world/hanoi-map.js`) and the 11 landmark histories
   (`src/game/landmark-history.js`)
 
 ## What is protected, and what is not
@@ -49,13 +49,13 @@ API serves the same text (plus a hash-chained log) at `GET /api/provenance`.
   - in `src/game/landmark-history.js` as `DATASET_PROVENANCE.watermark`
   - in `src/world/hanoi-map.js` as `HANOI_DATASET_MARKER`
   - in `data/provenance.json` as `watermark`
-- Distinctive ordering (part of the watermark): the 10 landmarks always
-  appear in this checklist order - hoankiem, ngocson, westlake, oldquarter,
+- Distinctive ordering (part of the watermark): the 11 landmarks always
+  appear in this checklist order - hoankiem, ngocson, westlake, tranquoc, oldquarter,
   mausoleum, vanmieu, onepillar, cathedral, opera, longbien.
 - How to check a suspected copy: search it for `HANOI3D-DANKEZO-WM-9Q7K2M`.
   A copy that kept the history text or the map file keeps the marker.
 - Keyed watermark (edge only): the Worker marks the numeric edition records
-  (10 landmark anchors + cell count) with antiRea `createValueWatermark`
+  (11 landmark anchors + cell count) with antiRea `createValueWatermark`
   when the `ANTIREA_WATERMARK_KEY` secret is set (via `wrangler secret put`,
   never in the repo). The marked totals are served at `GET /api/provenance`.
   Note, stated plainly: with an 11-record edition the library's statistical
@@ -65,7 +65,7 @@ API serves the same text (plus a hash-chained log) at `GET /api/provenance`.
 
 ## Metering (edge API only)
 
-- Per-identity record budget: the whole dataset is 11 records (1 map + 10
+- Per-identity record budget: the whole dataset is 12 records (1 map + 11
   histories) per 24 hours. A real player reads it once per session and
   re-reads cost nothing (already-seen records are not double-counted).
 - Request quota: 120 requests per hour per identity (lab default).

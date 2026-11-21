@@ -74,7 +74,7 @@ const isAscii = (s) => /^[\x00-\x7F]*$/.test(s);
 
 // ---- (b): no game accessor can surface a canary -----------------------------------
 {
-  check('(b) LANDMARKS has 10 real ids, zero canary', LANDMARKS.length === 10 && LANDMARKS.every((d) => !d.id.startsWith('canary-')));
+  check('(b) LANDMARKS has 11 real ids, zero canary', LANDMARKS.length === 11 && LANDMARKS.every((d) => !d.id.startsWith('canary-')));
   check('(b) landmarkInfo(canary) is null for both ids', CANARY_IDS.every((id) => landmarkInfo(id) === null));
   check('(b) LANDMARK_INFO has no canary key', !Object.keys(LANDMARK_INFO).some((k) => k.startsWith('canary-')));
   check('(b) HANOI_LANDMARKS has no canary key', !Object.keys(HANOI_LANDMARKS).some((k) => k.startsWith('canary-')));
@@ -122,7 +122,7 @@ const isAscii = (s) => /^[\x00-\x7F]*$/.test(s);
   check('(c) provenance.json license is MIT', prov.license === 'MIT');
   check('(c) provenance.json watermark matches', prov.watermark === WM);
   check('(c) provenance.json lists both canary ids + markers', prov.canary.ids.length === 2 && prov.canary.markers.includes('HANOI3D-CANARY-MAP-7F3A9D') && prov.canary.markers.includes('HANOI3D-CANARY-HIST-2B8E41'));
-  check('(c) provenance.json checklist order has 10 ids', prov.checklistOrder.length === 10);
+  check('(c) provenance.json checklist order has 11 ids', prov.checklistOrder.length === 11);
   check('(c) worker DECLARATION_TEXT matches provenance.json declaration', DECLARATION_TEXT === prov.declaration);
 }
 
@@ -130,7 +130,7 @@ const isAscii = (s) => /^[\x00-\x7F]*$/.test(s);
 {
   check('(d) DATASET_PROVENANCE.watermark is the marker', DATASET_PROVENANCE.watermark === WM);
   check('(d) DATASET_PROVENANCE owner is dankezo', DATASET_PROVENANCE.owner === 'dankezo');
-  check('(d) DATASET_PROVENANCE order is the 10-id checklist order', JSON.stringify(DATASET_PROVENANCE.order) === JSON.stringify(['hoankiem', 'ngocson', 'westlake', 'oldquarter', 'mausoleum', 'vanmieu', 'onepillar', 'cathedral', 'opera', 'longbien']));
+  check('(d) DATASET_PROVENANCE order is the 11-id checklist order', JSON.stringify(DATASET_PROVENANCE.order) === JSON.stringify(['hoankiem', 'ngocson', 'westlake', 'tranquoc', 'oldquarter', 'mausoleum', 'vanmieu', 'onepillar', 'cathedral', 'opera', 'longbien']));
   check('(d) HANOI_DATASET_MARKER is the marker', HANOI_DATASET_MARKER === WM);
   const histText = readFileSync(join(ROOT, 'src/game/landmark-history.js'), 'utf8');
   const mapText = readFileSync(join(ROOT, 'src/world/hanoi-map.js'), 'utf8');
@@ -160,17 +160,17 @@ async function bodyJson(res) {
   check('(e) /api/map size is 40', mapBody.size === 40);
   check('(e) /api/map rows are 40 strings of 40 chars', Array.isArray(mapBody.rows) && mapBody.rows.length === 40 && mapBody.rows.every((r) => r.length === 40));
   check('(e) /api/map rows match the bundled grid', JSON.stringify(mapBody.rows) === JSON.stringify(HANOI_ROWS));
-  check('(e) /api/map landmarks are the 10 real ids', Object.keys(mapBody.landmarks).sort().join(',') === EDGE_LANDMARK_IDS.slice().sort().join(','));
+  check('(e) /api/map landmarks are the 11 real ids', Object.keys(mapBody.landmarks).sort().join(',') === EDGE_LANDMARK_IDS.slice().sort().join(','));
   check('(e) /api/map body has no canary string anywhere', !JSON.stringify(mapBody).includes('canary'));
   check('(e) /api/map body has no undeclared top-level field', Object.keys(mapBody).sort().join(',') === 'landmarks,legend,rows,size');
   check('(e) /api/map sets CORS for the Pages origin', mapRes.headers.get('access-control-allow-origin') === 'https://dankezo.github.io');
   check('(e) /api/map is no-store', (mapRes.headers.get('cache-control') || '').includes('no-store'));
   check('(e) /api/map sets the hanoi_cid cookie', (mapRes.headers.get('set-cookie') || '').startsWith('hanoi_cid='));
-  // Same identity re-reads: map (1) + landmarks (10) = the whole 11-record budget, then re-reads cost 0.
+  // Same identity re-reads: map (1) + landmarks (11) = the whole 12-record budget, then re-reads cost 0.
   const lmRes = await app.fetch(mockReq('/api/landmarks'), {});
   const lmBody = await bodyJson(lmRes);
   check('(e) GET /api/landmarks is 200', lmRes.status === 200);
-  check('(e) /api/landmarks returns 10 entries', Array.isArray(lmBody.landmarks) && lmBody.landmarks.length === 10);
+  check('(e) /api/landmarks returns 11 entries', Array.isArray(lmBody.landmarks) && lmBody.landmarks.length === 11);
   check('(e) /api/landmarks entries carry declared fields only', lmBody.landmarks.every((e) => Object.keys(e).sort().join(',') === 'funEN,funVI,histEN,histVI,id,nameEN,nameVI,source'));
   check('(e) /api/landmarks has no canary id', lmBody.landmarks.every((e) => !e.id.startsWith('canary-')));
   check('(e) /api/landmarks history matches the bundled text', lmBody.landmarks.find((e) => e.id === 'hoankiem').funEN === LANDMARK_INFO.hoankiem.funEN);
@@ -246,7 +246,7 @@ async function bodyJson(res) {
   check('(e) canary maze serves a page (200, html)', mazeRes.status === 200 && mazeText.includes('<'));
 }
 {
-  // Herd: three identities partitioning the 11 records flag, then the ladder cuts them.
+  // Herd: three identities partitioning the 12 records flag, then the ladder cuts them.
   const flags = [];
   const app = createHanoiEdgeApp({ onHerdFlag: (s) => { flags.push(s); } });
   const take = async (cid, id) => {
@@ -254,7 +254,7 @@ async function bodyJson(res) {
     const res = await app.fetch(mockReq(path, { cid }), {});
     return res.status;
   };
-  const plan = { A: ['map:grid', 'hoankiem', 'ngocson', 'westlake'], B: ['oldquarter', 'mausoleum', 'vanmieu', 'onepillar'], C: ['cathedral', 'opera', 'longbien'] };
+  const plan = { A: ['map:grid', 'hoankiem', 'ngocson', 'westlake'], B: ['oldquarter', 'mausoleum', 'vanmieu', 'onepillar'], C: ['cathedral', 'opera', 'longbien', 'tranquoc'] };
   let all200 = true;
   for (const [cid, ids] of Object.entries(plan)) {
     for (const id of ids) { const st = await take(cid, id); if (st !== 200) all200 = false; }
@@ -262,7 +262,7 @@ async function bodyJson(res) {
   check('(e) herd members each read their slice (all 200)', all200);
   check('(e) partitioned herd flags (onFlag fired)', flags.length === 1);
   check('(e) herd flag band supports a budget cut', flags.length === 1 && flags[0].band === 'budget_cut_supported');
-  check('(e) herd flag covers all 11 records', flags.length === 1 && flags[0].combinedCoverage === 11);
+  check('(e) herd flag covers all 12 records', flags.length === 1 && flags[0].combinedCoverage === 12);
   // Ladder: member A now has a 2-record cap and has already seen 4, so a NEW record trips step-up.
   const laddered = await app.fetch(mockReq('/api/landmarks/oldquarter', { cid: 'A' }), {});
   check('(e) laddered herd member gets 402 on a new record, not data', laddered.status === 402);
@@ -279,10 +279,10 @@ async function bodyJson(res) {
   check('(e) provenance without a secret reports static-marker-only', noKeyBody.status === 'static-marker-only' && noKeyBody.watermarkTotals === null);
   const withKey = await app.fetch(mockReq('/api/provenance', { ip: '203.0.113.5' }), { ANTIREA_WATERMARK_KEY: 'test-key-2d-only' });
   const withKeyBody = await bodyJson(withKey);
-  check('(e) provenance with a secret reports keyed + 11 totals', withKeyBody.status === 'keyed' && Array.isArray(withKeyBody.watermarkTotals) && withKeyBody.watermarkTotals.length === 11);
+  check('(e) provenance with a secret reports keyed + 12 totals', withKeyBody.status === 'keyed' && Array.isArray(withKeyBody.watermarkTotals) && withKeyBody.watermarkTotals.length === 12);
   // Direct library check: marking is deterministic-shaped, verification is advisory (enforcement none).
   const wm = createValueWatermark({ key: 'test-key-2d-only' });
-  const marked = wm.markEdition('hanoi-map-v1', [{ id: 'cells', q: 1600, p: 10 }, { id: 'landmarks', q: 10, p: 1600 }]);
+  const marked = wm.markEdition('hanoi-map-v1', [{ id: 'cells', q: 1600, p: 10 }, { id: 'landmarks', q: 11, p: 1600 }]);
   check('(e) value watermark marks records with published totals', marked.length === 2 && marked.every((r) => typeof r.publishedTotal === 'number'));
   const ver = wm.verifyEdition('hanoi-map-v1', marked.map((r) => ({ id: r.id, q: r.q, p: r.p, publishedTotal: r.publishedTotal })));
   check('(e) value watermark verification reports enforcement none', ver && ver.enforcement === 'none');
@@ -291,7 +291,7 @@ async function bodyJson(res) {
   const applied = applyHerdLadder(b, { band: 'budget_cut_supported', members: ['cid:X', 'cid:Y'] }, { memberLimit: 2 });
   check('(e) applyHerdLadder applies to a budget_cut_supported snapshot', applied.applied === true && applied.identities.length === 2);
   check('(e) default export is a working app (fetch /api/map 200)', (await workerDefault.fetch(mockReq('/api/map', { ip: '203.0.113.6' }), {})).status === 200);
-  check('(e) RECORD_IDS is the 11 served records', RECORD_IDS.length === 11 && RECORD_IDS[0] === 'map:grid');
+  check('(e) RECORD_IDS is the 12 served records', RECORD_IDS.length === 12 && RECORD_IDS[0] === 'map:grid');
 }
 
 // ---- (f): edge flag OFF = bundled + zero network calls; ON = fetch with fallback --------------
@@ -389,8 +389,10 @@ function makeEl(tag = 'div') {
   return e;
 }
 const DOM_IDS = ['lm-list', 'lm-items', 'lm-count', 'lm-toast', 'lm-map', 'lm-info', 'lm-info-head', 'lm-info-x',
-  'lm-info-title-vi', 'lm-info-title-en', 'lm-info-hist-vi', 'lm-info-hist-en', 'lm-info-fun-vi', 'lm-info-fun-en',
-  'lm-info-src', 'lm-info-body', 'lm-info-hist-h-vi', 'lm-info-hist-h-en', 'lm-info-fun-h-vi', 'lm-info-fun-h-en',
+  'lm-info-title', 'lm-info-summary', 'lm-info-fun-h', 'lm-info-fun-short', 'lm-info-more', 'lm-info-details',
+  'lm-info-hist-h', 'lm-info-hist', 'lm-info-fun-full-h', 'lm-info-fun-full', 'lm-info-tabs',
+  'lm-info-lang', 'lm-info-lang-vi', 'lm-info-lang-en', 'lm-bang', 'atlas',
+  'lm-info-src', 'lm-info-body',
   'lm-title', 'lm-privacy', 'hint', 'lm-lang', 'lm-lang-vi', 'lm-lang-en', 'lm-head', 'lm-caret'];
 function freshDom() {
   const ids = {};
@@ -422,11 +424,17 @@ function freshDom() {
     storage: new Mem(), fetchImpl: null, navigatorLanguage: '',
     historyInfo: edgeHistory,
   });
-  check('(f) historyInfo override: list still has 10 real ids, zero canary', lm.list().length === 10 && lm.list().every((d) => !d.id.startsWith('canary-')));
+  check('(f) historyInfo override: list still has 11 real ids, zero canary', lm.list().length === 11 && lm.list().every((d) => !d.id.startsWith('canary-')));
   lm.debugDiscover('hoankiem');
-  check('(f) historyInfo override: info card shows the EDGE name, not bundled', ids['lm-info-title-vi'].textContent === 'EDGE TEN' && ids['lm-info-title-en'].textContent === 'EDGE NAME');
-  check('(f) historyInfo override: info card shows the EDGE history line', ids['lm-info-hist-vi'].children[0].textContent === 'edge dong');
+  check('(f) historyInfo override: discovery does NOT open the card', !ids['lm-info'].classList.contains('show') && lm.infoOpen() === null);
+  lm.openInfo('hoankiem');
+  check('(f) historyInfo override: info card shows the EDGE name, not bundled', ids['lm-info-title'].textContent === 'EDGE TEN');
   check('(f) historyInfo override: info card opens', ids['lm-info'].classList.contains('show'));
+  check('(f) historyInfo override: summary falls back to the first EDGE history line', ids['lm-info-summary'].textContent === 'edge dong');
+  check('(f) historyInfo override: short fun fact falls back to the full EDGE fun fact', ids['lm-info-fun-short'].textContent === 'edge vui');
+  ids['lm-info-more'].click();
+  check('(f) historyInfo override: info card shows the EDGE history line', ids['lm-info-hist'].children[0].textContent === 'edge dong');
+  check('(f) historyInfo override: source label uses the EDGE host', ids['lm-info-src'].textContent === 'Nguon: example.com');
   lm.settle();
   lm.dispose();
   // Without the override the bundled name shows (regression guard for the default path).
@@ -439,7 +447,9 @@ function freshDom() {
     storage: new Mem(), fetchImpl: null, navigatorLanguage: '',
   });
   lm2.debugDiscover('hoankiem');
-  check('(f) no override: info card shows the bundled name', ids2['lm-info-title-vi'].textContent === 'Ho Hoan Kiem');
+  check('(f) no override: discovery does NOT open the card', !ids2['lm-info'].classList.contains('show') && lm2.infoOpen() === null);
+  lm2.openInfo('hoankiem');
+  check('(f) no override: info card shows the bundled name', ids2['lm-info-title'].textContent === 'Ho Hoan Kiem');
   lm2.settle();
   lm2.dispose();
 }

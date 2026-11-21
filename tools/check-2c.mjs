@@ -265,8 +265,10 @@ function makeEl(tag = 'div') {
   return e;
 }
 const DOM_IDS = ['lm-list', 'lm-items', 'lm-count', 'lm-toast', 'lm-map', 'lm-info', 'lm-info-head', 'lm-info-x',
-  'lm-info-title-vi', 'lm-info-title-en', 'lm-info-hist-vi', 'lm-info-hist-en', 'lm-info-fun-vi', 'lm-info-fun-en',
-  'lm-info-src', 'lm-info-body', 'lm-info-hist-h-vi', 'lm-info-hist-h-en', 'lm-info-fun-h-vi', 'lm-info-fun-h-en',
+  'lm-info-title', 'lm-info-summary', 'lm-info-fun-h', 'lm-info-fun-short', 'lm-info-more', 'lm-info-details',
+  'lm-info-hist-h', 'lm-info-hist', 'lm-info-fun-full-h', 'lm-info-fun-full', 'lm-info-tabs',
+  'lm-info-lang', 'lm-info-lang-vi', 'lm-info-lang-en', 'lm-bang', 'atlas',
+  'lm-info-src', 'lm-info-body',
   'lm-title', 'lm-privacy', 'hint', 'lm-lang', 'lm-lang-vi', 'lm-lang-en', 'lm-head', 'lm-caret'];
 function freshDom() {
   const ids = {};
@@ -312,16 +314,19 @@ function firstItem(ids) {
   check('dom: privacy line is EN after toggle', ids['lm-privacy'].textContent.startsWith('Language guessed'));
   check('dom: toggle EN marked on after toggle', ids['lm-lang-en'].classList.contains('on') && !ids['lm-lang-vi'].classList.contains('on'));
   lm.debugDiscover('hoankiem');
-  check('dom: toast is EN after discovery', ids['lm-toast'].children[0].textContent === 'Discovered: Hoan Kiem Lake');
-  check('dom: toast sub is the VI name', ids['lm-toast'].children[1].textContent === 'Ho Hoan Kiem');
-  check('dom: info card opens on discovery', ids['lm-info'].classList.contains('show'));
-  check('dom: info title EN first', ids['lm-info-title-vi'].textContent === 'Hoan Kiem Lake' && ids['lm-info-title-en'].textContent === 'Ho Hoan Kiem');
-  check('dom: info first section is EN History', ids['lm-info-body'].children[0].textContent === 'History');
+  check('dom: toast is EN after discovery', ids['lm-toast'].children[0].textContent === 'Arrived at Hoan Kiem Lake');
+  check('dom: toast sub is the tap hint', ids['lm-toast'].children[1].textContent === 'Tap to view');
+  check('dom: info card does NOT open on discovery', !ids['lm-info'].classList.contains('show') && lm.infoOpen() === null);
+  lm.openInfo('hoankiem');
+  check('dom: info card opens on tap', ids['lm-info'].classList.contains('show') && lm.infoOpen() === 'hoankiem');
+  check('dom: info title is EN only', ids['lm-info-title'].textContent === 'Hoan Kiem Lake');
+  check('dom: info layer (a) shows the EN summary + short fun fact', ids['lm-info-summary'].textContent === LANDMARK_INFO.hoankiem.summaryEN && ids['lm-info-fun-short'].textContent === LANDMARK_INFO.hoankiem.funShortEN);
+  check('dom: info layer (b) is hidden by default', ids['lm-info-details'].hidden === true);
   check('dom: info source label is EN', ids['lm-info-src'].textContent.startsWith('Source: '));
   ids['lm-lang'].click();
-  check('dom: toggle back to VI re-words the open toast', ids['lm-toast'].children[0].textContent === 'Da kham pha: Ho Hoan Kiem');
-  check('dom: toggle back to VI re-orders the open info card', ids['lm-info-body'].children[0].textContent === 'Lich su');
-  check('dom: info title VI first after toggle back', ids['lm-info-title-vi'].textContent === 'Ho Hoan Kiem');
+  check('dom: toggle back to VI re-words the open toast', ids['lm-toast'].children[0].textContent === 'Da den Ho Hoan Kiem');
+  check('dom: toggle back to VI re-words the open info card', ids['lm-info-title'].textContent === 'Ho Hoan Kiem');
+  check('dom: info title is VI after toggle back', ids['lm-info-title'].textContent === 'Ho Hoan Kiem');
   check('dom: info source label is VI after toggle back', ids['lm-info-src'].textContent.startsWith('Nguon: '));
   lm.settle();
   lm.dispose();

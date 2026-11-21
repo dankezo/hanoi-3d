@@ -1,6 +1,6 @@
 # Hanoi 3D edge API (Cloudflare Worker)
 
-Metered API for the Hanoi dataset (40x40 map + 10 landmark histories) using
+Metered API for the Hanoi dataset (40x40 map + 11 landmark histories) using
 @dannyphan190/anti-rea v3.3.1. Static GitHub Pages cannot meter anything, so
 this Worker is the layer that makes antiRea real. The game uses it ONLY when
 the edge flag is set (see `src/core/config/edge.js`, default off).
@@ -8,9 +8,9 @@ the edge flag is set (see `src/core/config/edge.js`, default off).
 ## What it does, in one paragraph
 
 - `GET /api/map` serves the 40x40 grid + landmark positions.
-- `GET /api/landmarks` serves the 10 histories; `GET /api/landmarks/:id`
+- `GET /api/landmarks` serves the 11 histories; `GET /api/landmarks/:id`
   serves one.
-- Every identity gets a record budget (whole dataset = 11 records per 24h),
+- Every identity gets a record budget (whole dataset = 12 records per 24h),
   a request quota (120/hour), herd detection across identities, and a surface
   guard that only lets declared fields leave the API.
 - When a budget or quota trips, the answer is 402 + an x402 manifest (price
@@ -42,9 +42,9 @@ the edge flag is set (see `src/core/config/edge.js`, default off).
 
 | Control | Value | Why |
 |---|---|---|
-| Record budget | 11 distinct records / 24h per identity | The whole dataset is 11 records (1 map + 10 histories). A real player reads it once per session; re-reads cost 0 (already-seen records are not double-counted), so a real player never trips on this. |
+| Record budget | 12 distinct records / 24h per identity | The whole dataset is 12 records (1 map + 11 histories). A real player reads it once per session; re-reads cost 0 (already-seen records are not double-counted), so a real player never trips on this. |
 | Request quota | 120 requests / hour per IP | A real player loads map + histories once per session. 120/hour leaves room for reloads and still trips a hammering client. Two browsers behind one IP share the bucket (the quota guard resolves identity by IP only). |
-| Herd detection | combined floor 11, threshold 60, min 3 members | Library defaults assume a 10,000-record dataset and could never flag here, so they are rescaled to 11 records. A partitioned herd (members tiling the dataset between them) flags at score 68.3 in the local test. |
+| Herd detection | combined floor 12, threshold 60, min 3 members | Library defaults assume a 10,000-record dataset and could never flag here, so they are rescaled to 12 records. A partitioned herd (members tiling the dataset between them) flags at score 68.3 in the local test. |
 | Herd ladder | flagged members cut to 2 distinct records | Tightens the budget only; over-budget members get a 402 step-up on their next data request, never a block. |
 | Step-up | 402, price 0.001 USD signal, settlement none | The x402 manifest is a signal format. No payment is processed, no facilitator is contacted. |
 | Grace after step-up | 24 hours | `createVerificationGrace` default. A verified identity is served, not stepped up again, until grace ends. Grace covers record-budget step-ups only: the per-IP quota is checked first and always steps up when tripped. |
@@ -107,7 +107,7 @@ Muse cannot deploy this for you: it needs your Cloudflare login. Do this:
    - `curl https://<your-worker-host>/api/map` returns 200 with `size: 40`.
    - `curl https://<your-worker-host>/api/provenance` returns the declaration.
    - Load `https://dankezo.github.io/hanoi-3d/?map=hanoi` and confirm the
-     checklist still shows 10 landmarks and discovery still works.
+     checklist still shows 11 landmarks and discovery still works.
    - `curl https://<your-worker-host>/api/landmarks/canary-ho-guom-bac`
      returns 404 `{"error":"not_found"}` (the trap response).
 8. Local test before deploying (no login needed):

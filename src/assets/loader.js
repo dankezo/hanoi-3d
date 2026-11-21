@@ -44,25 +44,90 @@ function baseTexture(id, sockets) {
     g.arc(N / 2, N / 2, 0.6 * u, 0, Math.PI * 2);
     g.fill();
   }
+  if (id === 'hanoi_pond_guom' || id === 'hanoi_pond_tay' || id === 'hanoi_lotus') {
+    // Phase 3B: the two lakes read differently - Ho Guom dark green, Ho Tay deep blue
+    // (lotus pond included). Round disc (no 90-degree water corners) + faint ripples.
+    g.fillStyle = id === 'hanoi_pond_guom' ? '#2f6b5e' : '#2456a8';
+    g.beginPath();
+    g.arc(N / 2, N / 2, 0.6 * u, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.14)';
+    for (const [rx, ry, rr] of [[-0.25, -0.1, 0.05], [0.2, 0.15, 0.04], [0.05, -0.25, 0.035]]) {
+      g.beginPath(); g.arc((0.5 + rx) * N, (0.5 + ry) * N, rr * N, 0, Math.PI * 2); g.fill();
+    }
+    // Phase 3B fix round: stone bank ring - a grey stone rim (paperShade) 0.1
+    // wide around the water disc edge, so the lake edge reads as a stone bank.
+    g.strokeStyle = P.paperShade;
+    g.lineWidth = 0.1 * u;
+    g.beginPath();
+    g.arc(N / 2, N / 2, 0.55 * u, 0, Math.PI * 2);
+    g.stroke();
+  }
+  if (id === 'hanoi_stonebridge') {
+    // Phase 3B: Ho Tay deep-blue water under the low stone deck.
+    g.fillStyle = '#2456a8';
+    g.beginPath();
+    g.arc(N / 2, N / 2, 0.6 * u, 0, Math.PI * 2);
+    g.fill();
+  }
   if (id === 'hanoi_road') {
-    // zebra crossing bands on the N and S arms: 5 white dashes each (paper print)
+    // Phase 3A-17: grey brick paving (paperShade base + ink joints) + a dashed white
+    // centre line on the E-W axis + the zebra bands on the N and S arms (kept).
+    g.fillStyle = P.paperShade;
+    g.fillRect(0, 0, N, N);
+    g.fillStyle = 'rgba(90,58,40,0.22)';
+    for (let yy = 16; yy < N; yy += 16) g.fillRect(0, yy, N, 1);
+    for (let yy = 0; yy < N; yy += 32) {
+      for (let xx = (yy / 32) % 2 ? 0 : 16; xx < N; xx += 32) g.fillRect(xx, yy, 1, 16);
+    }
     g.fillStyle = '#fbf6ea';
     for (const cy of [0.5 - 0.55 / 2, 0.5 + 0.55 / 2]) {
       for (const cx of [0.34, 0.42, 0.5, 0.58, 0.66]) {
         g.fillRect((cx - 0.0225) * N, (cy - 0.075) * N, 0.045 * N, 0.15 * N);
       }
     }
+    for (const cx of [0.2, 0.4, 0.6, 0.8]) {
+      g.fillRect((cx - 0.03) * N, (0.5 - 0.02) * N, 0.06 * N, 0.04 * N);
+    }
   }
-  if (id === 'hanoi_sidewalk') {
-    // pavement slab: kraft-cream wash, terracotta kerb lines on both long edges, joints
-    g.fillStyle = P.paperShade;
-    g.fillRect(0, 0, N, N);
+  if (id === 'hanoi_sidewalk' || id === 'hanoi_flag' || id === 'hanoi_banner' ||
+      id === 'hanoi_bike_red' || id === 'hanoi_bike_blue' || id === 'hanoi_bike_black') {
+    // Phase 3A-10: granite pavement - 4x4 stone squares with a faint value step per
+    // square, ink joints, terracotta kerb lines on both long edges. Flags, banners
+    // and parked bikes stand on the same sidewalk print, so the pavement reads on.
+    for (let sy = 0; sy < 4; sy++) {
+      for (let sx = 0; sx < 4; sx++) {
+        g.fillStyle = (sx + sy) % 2 ? '#e3cda3' : P.paperShade;
+        g.fillRect(sx * 32, sy * 32, 32, 32);
+      }
+    }
+    g.fillStyle = 'rgba(90,58,40,0.28)';
+    for (let i = 0; i <= 4; i++) {
+      g.fillRect(i * 32 - 0.5, 0, 1, N);
+      g.fillRect(0, i * 32 - 0.5, N, 1);
+    }
     g.fillStyle = P.terracotta;
     g.fillRect(0, 0, N, 0.03 * N);
     g.fillRect(0, 0.97 * N, N, 0.03 * N);
+  }
+  if (id === 'hanoi_sautree') {
+    // Phase 3A-07: fallen golden leaves - mustard dots scattered on the grass base.
+    g.fillStyle = P.mustard;
+    let seed = 7;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (let i = 0; i < 22; i++) {
+      g.fillRect(rnd() * N, rnd() * N, 3, 2);
+    }
+  }
+  if (id === 'hanoi_alley') {
+    // Phase 3A-16: narrow paved lane, 1 unit wide down the middle (N-S), brick edges.
+    // Fix round: the lane was 0.5 unit wide (0.25 tile); spec wants 1 unit (0.5 tile).
+    g.fillStyle = P.kraft;
+    g.fillRect(0.25 * N, 0, 0.5 * N, N);
     g.fillStyle = 'rgba(90,58,40,0.25)';
-    g.fillRect(0.5 * N, 0, 1, N);
-    g.fillRect(0, 0.5 * N, N, 1);
+    g.fillRect(0.25 * N, 0, 1, N);
+    g.fillRect(0.75 * N, 0, 1, N);
+    g.fillRect(0.25 * N, 0.5 * N, 0.5 * N, 1);
   }
   g.strokeStyle = 'rgba(74,52,38,0.18)';
   g.lineWidth = 1;
@@ -119,6 +184,28 @@ function shapeFor(kind, w, h) {
     const y0 = h * 0.84;
     s.moveTo(-st, 0); s.lineTo(st, 0); s.lineTo(st, y0); s.lineTo(a, y0); s.lineTo(a, h);
     s.lineTo(-a, h); s.lineTo(-a, y0); s.lineTo(-st, y0); s.closePath();
+  } else if (kind === 'star') {
+    // Phase 3A: 5-point star for the red flag, drawn at the top of its box
+    // (centre y = h - R, outer radius R = w / 2, inner radius 0.382 R). The shape
+    // floats: it sits on the flag board in front of it, so it has no stem.
+    const R = w / 2, r = R * 0.382, cy = h - R;
+    for (let i = 0; i < 10; i++) {
+      const ang = Math.PI / 2 + (i * Math.PI) / 5;
+      const rad = i % 2 === 0 ? R : r;
+      const px = rad * Math.cos(ang), py = cy + rad * Math.sin(ang);
+      if (i === 0) s.moveTo(px, py); else s.lineTo(px, py);
+    }
+    s.closePath();
+  } else if (kind === 'sag') {
+    // Phase 3A: sagging power-line band - the top edge dips 0.5 below its ends,
+    // band thickness 0.035. The shape floats (no stem to the ground): it hangs
+    // between poles, so the fold hinge still sits at y = 0.
+    const th = 0.035;
+    s.moveTo(-a, h);
+    s.quadraticCurveTo(0, h - 1.0, a, h);
+    s.lineTo(a, h - th);
+    s.quadraticCurveTo(0, h - 1.0 - th, -a, h - th);
+    s.closePath();
   } else {
     s.moveTo(-a, 0); s.lineTo(a, 0); s.lineTo(a, h); s.lineTo(-a, h); s.closePath();
   }
@@ -239,12 +326,19 @@ const RECIPES = {
   // Phase 2B: landmarks are bigger and more layered (taller flaps up to ~1.5, extra wings,
   // plinths and side pieces); the GLB hero cards grow to match (same atlas sprites).
   hanoi_turtletower: [
-    ['tri', 0.58, 1.05, 0, -0.25, 0, P.terracotta, 1],
-    ['rect', 0.44, 0.8, 0, -0.22, 0, P.paper, 1],
-    ['rect', 0.66, 0.22, 0, -0.19, 0, P.paperShade, 1],
-    ['rect', 0.1, 0.3, 0, -0.18, 0, P.ink, 1],
-    ['rect', 0.8, 0.18, 0, -0.12, 0, P.paperShade, 1],
-    ['rect', 0.3, 0.5, 0.42, -0.2, 0, P.paper, 1],
+    ['tri', 0.3, 1.2, 0, -0.26, 0, P.terracotta, 1],
+    ['rect', 0.24, 1.02, 0, -0.24, 0, P.paper, 1],
+    ['rect', 0.42, 0.92, 0, -0.22, 0, P.terracotta, 1],
+    ['rect', 0.36, 0.84, 0, -0.21, 0, P.paperShade, 1],
+    ['dormer', 0.3, 0.9, 0, -0.2, 0, P.paper, 1],
+    ['rect', 0.56, 0.66, 0, -0.19, 0, P.terracotta, 1],
+    ['rect', 0.5, 0.58, 0, -0.18, 0, P.paper, 1],
+    ['rect', 0.72, 0.4, 0, -0.16, 0, P.terracotta, 1],
+    ['rect', 0.64, 0.32, 0, -0.15, 0, P.paperShade, 1],
+    ['arch', 0.12, 0.26, -0.19, -0.14, 0, P.ink, 1],
+    ['arch', 0.12, 0.26, 0, -0.14, 0, P.ink, 1],
+    ['arch', 0.12, 0.26, 0.19, -0.14, 0, P.ink, 1],
+    ['arch', 0.55, 0.1, 0, 0.08, 0, P.moss, 1],
   ],
   hanoi_ngocson: [
     ['tri', 1.1, 0.9, 0, -0.28, 0, P.rust, 1],
@@ -257,68 +351,94 @@ const RECIPES = {
     ['rect', 0.06, 0.8, -0.62, -0.18, 0, P.rust, 1],
   ],
   hanoi_thehuc: [
-    ['arch', 1.3, 0.34, -0.3, 0, 90, P.rust, 1],
-    ['arch', 1.3, 0.34, 0.3, 0, 90, P.rust, -1],
+    ['arch', 1.3, 0.34, -0.3, 0, 90, P.terracotta, 1],
+    ['arch', 1.3, 0.34, 0.3, 0, 90, P.terracotta, -1],
     ['rect', 1.5, 0.12, 0, 0.02, 0, P.terracotta, 1],
-    ['rect', 0.08, 0.5, -0.6, 0, 90, P.rust, 1],
-    ['rect', 0.08, 0.5, 0.6, 0, 90, P.rust, 1],
+    ['rect', 0.08, 0.55, -0.6, 0, 90, P.rust, 1],
+    ['rect', 0.08, 0.55, 0.6, 0, 90, P.rust, 1],
+    ['lamp', 0.14, 0.42, -0.6, 0, 90, P.rust, 1],
+    ['lamp', 0.14, 0.42, 0.6, 0, 90, P.rust, 1],
   ],
   hanoi_tranquoc: [
-    ['rect', 0.06, 1.3, 0, -0.3, 0, P.mustard, 1],
-    ['tri', 0.46, 1.18, 0, -0.27, 0, P.terracotta, 1],
-    ['rect', 0.32, 1.0, 0, -0.24, 0, P.paper, 1],
-    ['tri', 0.68, 0.85, 0, -0.21, 0, P.rust, 1],
-    ['rect', 0.5, 0.7, 0, -0.18, 0, P.paperShade, 1],
-    ['tri', 0.9, 0.55, 0, -0.15, 0, P.terracotta, 1],
-    ['rect', 0.7, 0.38, 0, -0.12, 0, P.paper, 1],
-    ['rect', 0.9, 0.25, 0, -0.1, 0, P.paperShade, 1],
+    ['tri', 0.16, 1.4, 0, -0.28, 0, P.mustard, 1],
+    ['rect', 0.24, 1.34, 0, -0.265, 0, P.paperShade, 1],
+    ['rect', 0.28, 1.25, 0, -0.25, 0, P.paper, 1],
+    ['rect', 0.32, 1.16, 0, -0.235, 0, P.paperShade, 1],
+    ['rect', 0.36, 1.07, 0, -0.22, 0, P.paper, 1],
+    ['rect', 0.4, 0.98, 0, -0.205, 0, P.paperShade, 1],
+    ['rect', 0.44, 0.89, 0, -0.19, 0, P.paper, 1],
+    ['rect', 0.48, 0.8, 0, -0.175, 0, P.paperShade, 1],
+    ['rect', 0.52, 0.71, 0, -0.16, 0, P.paper, 1],
+    ['rect', 0.56, 0.62, 0, -0.145, 0, P.paperShade, 1],
+    ['rect', 0.6, 0.53, 0, -0.13, 0, P.paper, 1],
+    ['rect', 0.64, 0.44, 0, -0.115, 0, P.paperShade, 1],
+    ['arch', 0.14, 0.3, 0, -0.1, 0, P.ink, 1],
     ['house', 0.45, 0.7, 0.55, -0.18, 0, P.paper, 1],
+    tree(-0.55, 0.05, 0.85, P.olive),
+    ['rect', 0.8, 0.14, 0, 0.05, 0, P.paperShade, 1],
   ],
+  // Phase 3A-01: yellow 3-storey tube house, 1.35 high - mustard walls, terracotta
+  // pitched roof, paper shopfront, dormer shop sign, side annex. The hero art card
+  // (atlas tubehouse sprite) already shows green shutters + iron balcony + shop door.
   hanoi_tubehouse: [
-    ['house', 0.55, 0.95, -0.55, -0.28, 0, P.paper, 1],
-    ['tri', 0.68, 0.5, -0.55, -0.25, 0, P.terracotta, 1],
-    ['house', 0.5, 0.8, 0.55, -0.24, 0, P.paperShade, 1],
-    ['tri', 0.62, 0.42, 0.55, -0.21, 0, P.rust, 1],
-    ['rect', 0.1, 0.32, -0.55, -0.22, 0, P.ink, 1],
-    ['rect', 0.1, 0.55, -0.35, -0.22, 0, P.brown, 1],
-    ['rect', 0.4, 0.12, 0.55, -0.18, 0, P.teal, 1],
+    ['tri', 0.9, 1.35, 0, -0.28, 0, P.terracotta, 1],
+    ['rect', 0.6, 1.12, 0, -0.25, 0, P.mustard, 1],
+    ['rect', 0.5, 0.4, 0, -0.2, 0, P.paper, 1],
+    ['rect', 0.12, 0.32, 0, -0.18, 0, P.ink, 1],
+    ['dormer', 0.45, 0.6, 0, -0.2, 0, P.paper, 1],
+    ['rect', 0.1, 0.5, 0.45, -0.22, 0, P.brown, 1],
+    ['house', 0.4, 0.75, 0.55, -0.2, 0, P.paperShade, 1],
+    ['tri', 0.5, 0.4, 0.55, -0.18, 0, P.rust, 1],
+    ['rect', 0.14, 0.28, 0.28, -0.2, 0, P.tealDeep, 1],
   ],
   hanoi_tubehouse_b: [
-    ['house', 0.62, 1.0, 0.42, -0.26, 0, P.paper, 1],
-    ['tri', 0.74, 0.55, 0.42, -0.23, 0, P.terracotta, 1],
-    ['rect', 0.2, 0.14, 0.42, -0.2, 0, P.mustard, 1],
+    ['tri', 0.88, 1.3, 0, -0.28, 0, P.rust, 1],
+    ['rect', 0.58, 1.08, 0, -0.25, 0, P.ochre, 1],
+    ['rect', 0.46, 0.38, 0, -0.2, 0, P.paper, 1],
+    ['rect', 0.12, 0.3, -0.12, -0.18, 0, P.ink, 1],
+    ['dormer', 0.42, 0.58, 0.1, -0.2, 0, P.terracotta, 1],
     tree(-0.55, 0.05, 0.85, P.olive),
-    ['rect', 0.4, 0.12, 0.42, -0.17, 0, P.mustard, 1],
-    ['rect', 0.1, 0.5, 0.62, -0.2, 0, P.brown, 1],
+    ['rect', 0.1, 0.45, 0.45, -0.2, 0, P.brown, 1],
+    ['rect', 0.12, 0.26, 0.3, -0.18, 0, P.tealDeep, 1],
   ],
+  // Phase 3A-02: green 2-storey tube house, 1.05 high - sage walls, white shutters,
+  // vertical sign, one tree. Ratio on the map is 1 green : 2 yellow (4 green, 8 yellow).
   hanoi_tubehouse_green: [
-    tree(-0.6, -0.35, 0.9),
-    tree(0.6, 0.3, 0.8, P.olive),
-    ['rect', 0.06, 0.95, 0.55, 0, 0, P.ink, 1],
-    ['rect', 0.2, 0.24, 0.55, 0.02, 0, P.lantern, 1],
-    ['rect', 0.34, 0.22, -0.15, 0.35, 0, P.kraft, 1],
-    ['rect', 0.06, 0.8, -0.55, 0, 0, P.ink, 1],
-    ['rect', 0.18, 0.2, -0.55, 0.02, 0, P.lantern, 1],
+    ['tri', 0.62, 1.05, 0, -0.26, 0, P.terracotta, 1],
+    ['rect', 0.52, 0.9, 0, -0.23, 0, P.sage, 1],
+    ['rect', 0.4, 0.35, 0, -0.2, 0, P.paper, 1],
+    ['rect', 0.12, 0.3, 0, -0.18, 0, P.ink, 1],
+    ['dormer', 0.3, 0.55, 0.05, -0.2, 0, P.paper, 1],
+    tree(-0.55, 0.05, 0.8, P.olive),
+    ['rect', 0.12, 0.24, 0.3, -0.18, 0, P.paper, 1],
   ],
+  // Phase 3A-15: the brown barn-like block is gone - granite steps (paperShade, the
+  // palette has no true grey) + granite body. The GLB hero art already shows grey
+  // granite with clear steps; this recipe is the placeholder fallback.
   hanoi_mausoleum: [
-    ['rect', 1.0, 0.95, 0, -0.28, 0, P.brown, 1],
-    ['rect', 0.8, 0.85, 0, -0.25, 0, P.paper, 1],
-    ['rect', 0.95, 0.55, 0, -0.22, 0, P.paperShade, 1],
-    ['rect', 1.1, 0.28, 0, -0.19, 0, P.kraft, 1],
-    ['rect', 0.06, 0.45, -0.25, -0.17, 0, P.ink, 1],
-    ['rect', 0.06, 0.45, 0, -0.17, 0, P.ink, 1],
-    ['rect', 0.06, 0.45, 0.25, -0.17, 0, P.ink, 1],
-    ['rect', 0.4, 0.6, -0.62, -0.2, 0, P.paperShade, 1],
-    ['rect', 0.4, 0.6, 0.62, -0.2, 0, P.paperShade, 1],
+    ['rect', 1.0, 1.3, 0, -0.28, 0, P.paperShade, 1],
+    ['rect', 0.8, 1.15, 0, -0.25, 0, P.paper, 1],
+    ['rect', 0.95, 0.9, 0, -0.22, 0, P.paperShade, 1],
+    ['rect', 0.06, 0.55, -0.25, -0.17, 0, P.ink, 1],
+    ['rect', 0.06, 0.55, 0, -0.17, 0, P.ink, 1],
+    ['rect', 0.06, 0.55, 0.25, -0.17, 0, P.ink, 1],
+    ['rect', 0.4, 0.7, -0.62, -0.2, 0, P.paperShade, 1],
+    ['rect', 0.4, 0.7, 0.62, -0.2, 0, P.paperShade, 1],
+    ['rect', 1.0, 0.42, 0, 0, 0, P.paperShade, 1],
+    ['rect', 1.15, 0.28, 0, 0.05, 0, P.paperShade, 1],
+    ['rect', 1.3, 0.14, 0, 0.1, 0, P.paperShade, 1],
   ],
   hanoi_badinh: [
-    ['rect', 0.07, 1.05, 0, -0.6, 0, P.ink, 1],
+    ['rect', 0.07, 1.3, 0, -0.6, 0, P.ink, 1],
+    ['lamp', 0.34, 1.3, 0.06, -0.62, 0, P.rust, 1],
+    ['star', 0.14, 1.3, 0.06, -0.61, 0, P.mustard, 1],
     ['rect', 0.8, 0.16, 0, -0.12, 0, P.paperShade, 1],
     ['rect', 0.5, 0.3, 0, -0.09, 0, P.kraft, 1],
-    tuft(-0.7, 0.5),
-    tuft(0.7, -0.5),
     ['rect', 0.06, 1.3, 0.45, -0.3, 0, P.ink, 1],
     ['arch', 0.5, 0.25, -0.5, 0.4, 0, P.rose, 1],
+    ['arch', 0.5, 0.25, 0.5, 0.4, 0, P.rose, 1],
+    tuft(-0.7, 0.5),
+    tuft(0.7, -0.5),
   ],
   hanoi_vanmieu: [
     ['tri', 0.95, 1.0, 0, -0.28, 0, P.rust, 1],
@@ -359,34 +479,94 @@ const RECIPES = {
     ['rect', 1.2, 0.14, 0, -0.12, 0, P.paperShade, 1],
   ],
   hanoi_longbien: [
-    ['arch', 1.3, 0.34, -0.3, 0, 90, P.brown, 1],
-    ['arch', 1.3, 0.34, 0.3, 0, 90, P.brown, -1],
+    ['arch', 1.3, 0.34, -0.3, 0, 90, P.rust, 1],
+    ['arch', 1.3, 0.34, 0.3, 0, 90, P.rust, -1],
     ['rect', 0.08, 0.5, -0.3, 0, 90, P.ink, 1],
     ['rect', 0.08, 0.5, 0.3, 0, 90, P.ink, 1],
     ['rect', 0.08, 0.6, -0.5, 0, 90, P.ink, 1],
     ['rect', 0.08, 0.6, 0.5, 0, 90, P.ink, 1],
+    ['rect', 0.14, 0.34, -0.3, 0.1, 90, P.paperShade, 1],
+    ['rect', 0.14, 0.34, 0.3, 0.1, 90, P.paperShade, 1],
+  ],
+  // Phase 3B lake models: flat-colour flaps only, no hero art card (no new atlas sprites).
+  // Pond cells copy the stock pond recipe (reeds at the edge); the lake colours live on
+  // the base disc (baseTexture here, buildBase in the GLB builder), not on the flaps.
+  hanoi_pond_guom: [
+    tuft(-0.75, -0.6),
+    ['rect', 0.06, 0.4, 0.7, -0.5, 0, P.olive, 1],
+    ['rect', 0.06, 0.32, 0.8, -0.42, 0, P.moss, 1],
+  ],
+  hanoi_pond_tay: [
+    tuft(-0.75, -0.6),
+    ['rect', 0.06, 0.4, 0.7, -0.5, 0, P.olive, 1],
+    ['rect', 0.06, 0.32, 0.8, -0.42, 0, P.moss, 1],
+  ],
+  hanoi_lotus: [
+    ['arch', 0.3, 0.18, -0.3, -0.2, 0, P.moss, 1],
+    ['arch', 0.3, 0.18, 0.3, 0.1, 0, P.moss, 1],
+    ['arch', 0.25, 0.22, 0, -0.3, 0, P.rose, 1],
+    ['arch', 0.25, 0.22, -0.1, 0.25, 0, P.rose, 1],
+    ['rect', 0.06, 0.4, 0.7, -0.5, 0, P.olive, 1],
+  ],
+  hanoi_stonebridge: [
+    ['arch', 1.3, 0.3, -0.3, 0, 90, P.paperShade, 1],
+    ['arch', 1.3, 0.3, 0.3, 0, 90, P.paperShade, -1],
+    ['rect', 1.5, 0.1, 0, 0.02, 0, P.paperShade, 1],
+    ['rect', 0.08, 0.42, -0.6, 0, 90, P.paperShade, 1],
+    ['rect', 0.08, 0.42, 0.6, 0, 90, P.paperShade, 1],
+  ],
+  // Phase 3B-10: Pen Tower, 5 shrinking tiers + a pen-tip tri at 1.45 (tallest around
+  // Ho Guom). The light rect at the foot is the inscription tablet.
+  hanoi_pentower: [
+    ['rect', 0.5, 0.35, 0, -0.2, 0, P.paperShade, 1],
+    ['rect', 0.42, 0.62, 0, -0.22, 0, P.paper, 1],
+    ['rect', 0.34, 0.88, 0, -0.24, 0, P.paperShade, 1],
+    ['rect', 0.26, 1.12, 0, -0.26, 0, P.paper, 1],
+    ['rect', 0.18, 1.32, 0, -0.28, 0, P.paperShade, 1],
+    ['tri', 0.16, 1.45, 0, -0.3, 0, P.terracotta, 1],
+    ['rect', 0.2, 0.08, 0, -0.18, 0, P.paper, 1],
+  ],
+  // Phase 3B-12: mausoleum side wing - the second tile of the 2-tile mausoleum.
+  hanoi_mausoleum_wing: [
+    ['rect', 0.9, 0.85, 0, -0.25, 0, P.paperShade, 1],
+    ['rect', 0.7, 0.7, 0, -0.22, 0, P.paper, 1],
+    ['rect', 0.06, 0.4, -0.2, -0.19, 0, P.ink, 1],
+    ['rect', 0.06, 0.4, 0.2, -0.19, 0, P.ink, 1],
+    ['rect', 1.0, 0.28, 0, 0.02, 0, P.paperShade, 1],
+    ['rect', 1.15, 0.14, 0, 0.08, 0, P.paperShade, 1],
   ],
   // Phase 2B street elements (Old Quarter only; flat cut-paper silhouettes, static figures).
   hanoi_road: [
     ['rect', 0.12, 0.3, -0.75, -0.75, 0, P.ink, 1],
     ['rect', 0.12, 0.3, 0.75, 0.75, 0, P.ink, 1],
   ],
+  // Phase 3A-10: kerb flap 0.08 high (was 0.12); base print is now granite squares.
   hanoi_sidewalk: [
-    ['rect', 0.5, 0.12, 0, 0.55, 0, P.paperShade, 1],
+    ['rect', 0.5, 0.08, 0, 0.55, 0, P.paperShade, 1],
   ],
+  // Phase 3A-06: sao den ancient tree - thick trunk, dark canopy 1.2 wide at 1.40 high
+  // (tallest in the quarter, above the 1.35 roofs), granite seat block at the base.
   hanoi_tree: [
-    tree(-0.25, -0.15, 1.15, P.pine),
-    tree(0.3, 0.25, 0.85, P.sage),
+    ['rect', 0.25, 1.0, 0, -0.1, 0, P.brown, 1],
+    ['tree', 1.2, 1.4, 0, -0.15, 0, P.pine, 1],
+    ['tree', 0.8, 1.15, 0.25, 0, 0, P.moss, 1],
+    ['rect', 0.5, 0.15, 0, 0.35, 0, P.paperShade, 1],
+    ['arch', 0.4, 0.2, 0.3, 0.25, 0, P.sage, 1],
   ],
   hanoi_bush: [
     ['arch', 0.55, 0.42, -0.35, -0.1, 0, P.sage, 1],
     ['arch', 0.45, 0.34, 0.3, 0.15, 0, P.olive, 1],
     ['arch', 0.35, 0.28, 0.05, 0.35, 0, P.moss, 1],
   ],
+  // Phase 3A-14: the traffic light now carries the one-way sign (blue board + white
+  // mark) on its pole, at (-6,-3) next to the light itself - the cell holds the light,
+  // so the sign shares the pole instead of taking a second cell.
   hanoi_trafficlight: [
     ['rect', 0.08, 0.95, 0.35, -0.1, 0, P.ink, 1],
     ['lamp', 0.26, 1.0, 0.35, -0.1, 0, P.ink, 1],
     ['glowtop', 0.12, 1.0, 0.35, -0.1, 0, P.lantern, 1],
+    ['lamp', 0.25, 0.8, -0.35, 0.05, 0, P.teal, 1],
+    ['dormer', 0.12, 0.8, -0.35, 0.08, 0, P.paper, 1],
   ],
   hanoi_police: [
     ['figure', 0.36, 1.0, 0, -0.1, 0, P.ink, 1],
@@ -397,24 +577,188 @@ const RECIPES = {
     ['figure', 0.3, 0.9, 0.45, 0.05, 0, P.teal, 1],
     ['figure', 0.2, 0.6, 0.05, 0.2, 0, P.mustard, 1],
   ],
+  // Phase 3A-11: vendor gains a small teal plastic stool beside the baskets.
   hanoi_vendor: [
     ['figure', 0.3, 0.9, 0, -0.15, 0, P.paper, 1],
     ['arch', 0.5, 0.32, -0.5, 0.1, 0, P.ochre, 1],
     ['arch', 0.5, 0.32, 0.5, 0.1, 0, P.ochre, 1],
+    ['rect', 0.15, 0.12, 0.4, 0.25, 0, P.teal, 1],
   ],
+  // Phase 3A-12: pho stall - terracotta awning roof, counter, pot, PHO sign, white
+  // steam puff, low table, 4 tiny plastic stools (0.12 x 0.15).
   hanoi_phostall: [
     ['house', 0.9, 1.0, 0, -0.2, 0, P.terracotta, 1],
     ['rect', 0.5, 0.4, 0, -0.15, 0, P.paper, 1],
     ['arch', 0.24, 0.3, -0.2, -0.1, 0, P.ink, 1],
     ['rect', 0.34, 0.18, 0.2, -0.05, 0, P.mustard, 1],
+    ['arch', 0.2, 0.3, -0.2, -0.05, 0, P.paper, 1],
+    ['rect', 0.5, 0.3, -0.35, 0.15, 0, P.paperShade, 1],
+    ['rect', 0.12, 0.15, -0.5, 0.25, 0, P.teal, 1],
+    ['rect', 0.12, 0.15, -0.2, 0.28, 0, P.rose, 1],
+    ['rect', 0.12, 0.15, 0.45, 0.25, 0, P.mustard, 1],
+    ['rect', 0.12, 0.15, 0.2, 0.3, 0, P.teal, 1],
   ],
+  // Phase 3A-05: pole + transformer + 3 sagging wire bands (lowest dip 0.75) +
+  // a cable coil bundle at the pole side. Wires use the new 'sag' shape kind.
   hanoi_pole: [
     ['lamp', 0.55, 1.3, 0, -0.15, 0, P.ink, 1],
     ['rect', 0.22, 0.35, 0.3, 0.1, 0, P.paperShade, 1],
+    ['sag', 1.9, 1.25, 0, -0.1, 0, P.ink, 1],
+    ['sag', 1.9, 1.3, 0, -0.05, 90, P.ink, 1],
+    ['sag', 1.7, 1.28, 0, 0, 0, P.brown, 1],
+    ['arch', 0.3, 0.45, 0.28, 0.08, 0, P.ink, 1],
   ],
+  // Phase 3A-08: white-globe street lamp - dark green post, 2 white globes 0.18 wide
+  // 0.26 apart at 1.10 high, round base, small blue plate.
   hanoi_lamp: [
-    ['lamp', 0.3, 1.05, 0, -0.1, 0, P.ink, 1],
-    ['glowtop', 0.14, 1.05, 0, -0.1, 0, P.lantern, 1],
+    ['lamp', 0.1, 1.1, 0, -0.1, 0, P.tealDeep, 1],
+    ['glowtop', 0.18, 1.1, -0.13, -0.05, 0, P.paper, 1],
+    ['glowtop', 0.18, 1.1, 0.13, -0.05, 0, P.paper, 1],
+    ['rect', 0.3, 0.12, 0, 0.05, 0, P.tealDeep, 1],
+    ['rect', 0.2, 0.14, 0.18, 0.1, 0, P.teal, 1],
+  ],
+  // Phase 3A street elements (vibe Ha Noi that). The loader placeholder keeps
+  // flat-colour flaps only; the GLB hero art cards (fix round: sign text sprites
+  // for the corner house, the 4 beer signs, the banner and the pho stalls) live
+  // in tools/step5/build-hanoi-glb.mjs HERO, not in these RECIPES.
+  // 3A-03: corner house at Ta Hien, 1.40 high (tallest house in the quarter) - yellow
+  // 2-face facade, ground-floor shop, 3 stacked sign boards: BIA PHO CO yellow,
+  // CRYSTAL neon blue, BOLD & Light white.
+  hanoi_cornerhouse: [
+    ['tri', 0.9, 1.4, 0, -0.28, 0, P.terracotta, 1],
+    ['rect', 0.75, 1.15, 0, -0.25, 0, P.mustard, 1],
+    ['rect', 0.62, 0.42, 0, -0.2, 0, P.paper, 1],
+    ['rect', 0.14, 0.34, -0.15, -0.18, 0, P.ink, 1],
+    ['rect', 0.14, 0.34, 0.15, -0.18, 0, P.ink, 1],
+    ['lamp', 0.6, 1.05, 0, -0.16, 0, P.mustard, 1],
+    ['lamp', 0.5, 0.88, 0.1, -0.14, 0, P.teal, 1],
+    ['lamp', 0.55, 0.72, -0.1, -0.12, 0, P.paper, 1],
+  ],
+  // 3A-04: the 4 beer signs, one model each - dark post, coloured board, vertical
+  // board, base block. No other brand names are used anywhere in the game.
+  hanoi_sign_phoco: [
+    ['lamp', 0.5, 1.0, 0, -0.1, 0, P.ink, 1],
+    ['lamp', 0.6, 0.95, 0, -0.08, 0, P.mustard, 1],
+    ['rect', 0.18, 0.6, 0.35, -0.05, 0, P.paper, 1],
+    ['rect', 0.5, 0.12, 0, 0.25, 0, P.brown, 1],
+  ],
+  hanoi_sign_biahoi: [
+    ['lamp', 0.5, 1.0, 0, -0.1, 0, P.ink, 1],
+    ['lamp', 0.6, 0.95, 0, -0.08, 0, P.terracotta, 1],
+    ['rect', 0.18, 0.6, 0.35, -0.05, 0, P.rust, 1],
+    ['rect', 0.5, 0.12, 0, 0.25, 0, P.brown, 1],
+  ],
+  hanoi_sign_trucbach: [
+    ['lamp', 0.5, 1.0, 0, -0.1, 0, P.ink, 1],
+    ['lamp', 0.6, 0.95, 0, -0.08, 0, P.paper, 1],
+    ['rect', 0.18, 0.6, 0.35, -0.05, 0, P.paperShade, 1],
+    ['rect', 0.5, 0.12, 0, 0.25, 0, P.brown, 1],
+  ],
+  hanoi_sign_paramount: [
+    ['lamp', 0.5, 1.0, 0, -0.1, 0, P.ink, 1],
+    ['lamp', 0.6, 0.95, 0, -0.08, 0, P.rose, 1],
+    ['rect', 0.18, 0.6, 0.35, -0.05, 0, P.mustard, 1],
+    ['rect', 0.5, 0.12, 0, 0.25, 0, P.brown, 1],
+  ],
+  // 3A-09: red flag with yellow star - dark pole, red board (lamp kind), star
+  // (new 'star' kind, floating on the board), stone base. Base is granite print.
+  hanoi_flag: [
+    ['rect', 0.06, 1.1, -0.05, -0.12, 0, P.ink, 1],
+    ['lamp', 0.3, 1.1, 0, -0.1, 0, P.terracotta, 1],
+    ['star', 0.14, 1.1, 0, -0.06, 0, P.mustard, 1],
+    ['rect', 0.24, 0.1, 0, 0.2, 0, P.paperShade, 1],
+  ],
+  // 3A-09: red vertical banner with a yellow emblem (dormer kind) on a dark pole.
+  hanoi_banner: [
+    ['rect', 0.06, 1.15, 0, -0.1, 0, P.ink, 1],
+    ['rect', 0.25, 0.7, 0.12, -0.06, 0, P.terracotta, 1],
+    ['dormer', 0.2, 0.85, 0.12, -0.04, 0, P.mustard, 1],
+    ['rect', 0.24, 0.1, 0, 0.2, 0, P.paperShade, 1],
+  ],
+  // 3A-07: sau tree with golden leaves - brown trunk, mustard + ochre canopy 1.0
+  // wide at 1.20 high, leaf mound at the base, fallen leaves on the base print.
+  hanoi_sautree: [
+    ['rect', 0.22, 0.95, 0, -0.1, 0, P.brown, 1],
+    ['tree', 1.0, 1.2, 0, -0.15, 0, P.mustard, 1],
+    ['tree', 0.7, 1.0, -0.2, 0, 0, P.ochre, 1],
+    ['arch', 0.5, 0.25, 0.25, 0.2, 0, P.mustard, 1],
+    ['rect', 0.4, 0.12, -0.25, 0.3, 0, P.paperShade, 1],
+  ],
+  // 3A-13: parked motorbikes, standing still (Q7: no moving bikes in 3A) - body
+  // 0.45 long, 2 wheel domes, handlebar stem. One model per colour, placed mixed.
+  hanoi_bike_red: [
+    ['rect', 0.45, 0.28, 0, 0, 0, P.rust, 1],
+    ['arch', 0.16, 0.16, -0.18, 0.05, 0, P.ink, 1],
+    ['arch', 0.16, 0.16, 0.18, 0.05, 0, P.ink, 1],
+    ['rect', 0.06, 0.35, 0.22, 0.02, 0, P.ink, 1],
+  ],
+  hanoi_bike_blue: [
+    ['rect', 0.45, 0.28, 0, 0, 0, P.tealDeep, 1],
+    ['arch', 0.16, 0.16, -0.18, 0.05, 0, P.ink, 1],
+    ['arch', 0.16, 0.16, 0.18, 0.05, 0, P.ink, 1],
+    ['rect', 0.06, 0.35, 0.22, 0.02, 0, P.ink, 1],
+  ],
+  hanoi_bike_black: [
+    ['rect', 0.45, 0.28, 0, 0, 0, P.ink, 1],
+    ['arch', 0.16, 0.16, -0.18, 0.05, 0, P.ink, 1],
+    ['arch', 0.16, 0.16, 0.18, 0.05, 0, P.ink, 1],
+    ['rect', 0.06, 0.35, 0.22, 0.02, 0, P.paperShade, 1],
+  ],
+  // 3A-14: folk-painting mural wall - paperShade wall 1.9 long (ry 90, runs N-S),
+  // rose + teal art panels, mustard folk figure, paper base strip. The wall sits at
+  // z 0 so its 1.9 span stays inside the tile ([-0.95, 0.95]); the strip sits 0.05
+  // in front of the wall foot ([-0.90, 1.00]).
+  hanoi_mural: [
+    ['rect', 1.9, 0.8, 0, 0, 90, P.paperShade, 1],
+    ['arch', 0.5, 0.6, 0, 0.05, 90, P.rose, 1],
+    ['arch', 0.5, 0.55, 0, 0.15, 90, P.teal, 1],
+    ['figure', 0.3, 0.6, 0, 0.1, 90, P.mustard, 1],
+    ['rect', 1.9, 0.12, 0, 0.05, 90, P.paper, 1],
+  ],
+  // 3A-16: narrow west alley - yellow + ochre house silhouettes tight on both sides
+  // (1 unit lane gap in the middle = 0.5 tile, spec 3A-16), red flag with star on the
+  // west house wall, low sagging wire. Fix round: houses were 0.7 wide at x +-0.6
+  // (gap 0.5 unit, half the spec); now 0.5 wide at x +-0.75 so the lane is 1 unit
+  // and the 0.5 roofs stay inside the tile ([-1.00, -0.50]).
+  hanoi_alley: [
+    ['tri', 0.5, 1.35, -0.75, -0.22, 0, P.terracotta, 1],
+    ['rect', 0.5, 1.3, -0.75, -0.2, 0, P.mustard, 1],
+    ['tri', 0.5, 1.3, 0.75, -0.2, 0, P.rust, 1],
+    ['rect', 0.5, 1.25, 0.75, -0.18, 0, P.ochre, 1],
+    ['lamp', 0.3, 1.05, -0.62, 0, 0, P.terracotta, 1],
+    ['star', 0.12, 1.05, -0.62, 0.04, 0, P.mustard, 1],
+    ['sag', 1.9, 1.2, 0, 0.1, 0, P.ink, 1],
+  ],
+  // 3A-11: street vendor on the main street - same 4 flaps as hanoi_vendor.
+  hanoi_vendor_street: [
+    ['figure', 0.3, 0.9, 0, -0.15, 0, P.paper, 1],
+    ['arch', 0.5, 0.32, -0.5, 0.1, 0, P.ochre, 1],
+    ['arch', 0.5, 0.32, 0.5, 0.1, 0, P.ochre, 1],
+    ['rect', 0.15, 0.12, 0.4, 0.25, 0, P.teal, 1],
+  ],
+  // 3A-12: street pho stall on the main street - same 10 flaps as hanoi_phostall.
+  hanoi_phostall_street: [
+    ['house', 0.9, 1.0, 0, -0.2, 0, P.terracotta, 1],
+    ['rect', 0.5, 0.4, 0, -0.15, 0, P.paper, 1],
+    ['arch', 0.24, 0.3, -0.2, -0.1, 0, P.ink, 1],
+    ['rect', 0.34, 0.18, 0.2, -0.05, 0, P.mustard, 1],
+    ['arch', 0.2, 0.3, -0.2, -0.05, 0, P.paper, 1],
+    ['rect', 0.5, 0.3, -0.35, 0.15, 0, P.paperShade, 1],
+    ['rect', 0.12, 0.15, -0.5, 0.25, 0, P.teal, 1],
+    ['rect', 0.12, 0.15, -0.2, 0.28, 0, P.rose, 1],
+    ['rect', 0.12, 0.15, 0.45, 0.25, 0, P.mustard, 1],
+    ['rect', 0.12, 0.15, 0.2, 0.3, 0, P.teal, 1],
+  ],
+  // 3A-05: pole on the house row - same 6 flaps as hanoi_pole, wires turned 90 deg
+  // so they run along the N-S house row instead of the E-W street. The ry-90 wire
+  // sits at z -0.05 (not -0.1) so its 1.9 span stays inside the tile ([-1.00, 0.90]).
+  hanoi_pole_street: [
+    ['lamp', 0.55, 1.3, 0, -0.15, 0, P.ink, 1],
+    ['rect', 0.22, 0.35, 0.3, 0.1, 0, P.paperShade, 1],
+    ['sag', 1.9, 1.25, 0, -0.05, 90, P.ink, 1],
+    ['sag', 1.9, 1.3, 0, -0.05, 0, P.ink, 1],
+    ['sag', 1.7, 1.28, 0, 0, 90, P.brown, 1],
+    ['arch', 0.3, 0.45, 0.28, 0.08, 0, P.ink, 1],
   ],
 };
 
@@ -489,9 +833,9 @@ function buildPlaceholderTraveller(materials) {
 const warnings = [];
 function warn(...a) { warnings.push(a.join(' ')); console.warn('[assets]', ...a); }
 
-async function loadGLTF(url) {
+async function loadGLTF(url, onProgress) {
   try {
-    return await new GLTFLoader().loadAsync(url);
+    return await new GLTFLoader().loadAsync(url, onProgress);
   } catch (err) {
     warn('could not load', url, '-', err && err.message ? err.message : String(err));
     return null;
@@ -553,9 +897,9 @@ function adopt(root, prefix, mats, opts = {}) {
   return stats;
 }
 
-async function loadTexture(url, { srgb = false, repeat = true, flipY = true, anisotropy = 4 } = {}) {
+async function loadTexture(url, { srgb = false, repeat = true, flipY = true, anisotropy = 4 } = {}, onProgress) {
   try {
-    const t = await new THREE.TextureLoader().loadAsync(url);
+    const t = await new THREE.TextureLoader().loadAsync(url, onProgress);
     t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     t.wrapS = t.wrapT = repeat ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
     t.flipY = flipY;
@@ -577,18 +921,51 @@ async function fetchJSON(url) {
   }
 }
 
+// ---- Phase 3D-04: real progress ------------------------------------------------------------
+// A loader progress event carries { loaded, total } in bytes, but total is 0
+// when the server sends no Content-Length, so every job also carries an
+// expected byte size (measured from public/, see docs/phase-3d-manifest.md).
+// fraction = total > 0 ? loaded / total : min(1, loaded / expected).
+// A stage's fraction is the byte-weighted sum of its jobs. The caller
+// (main.js) maps each stage fraction onto its % range on the loading screen.
+// Jobs with no progress event at all (fetchJSON) report nothing: main.js
+// shows them as a fake milestone instead, marked MOC GIA in the code there.
+/** Expected on-disk bytes, measured 2026-11-21 (ls -l public/models). */
+const GLB_BYTES = { tiles: 6147140, basicGrand: 704872, hanoiTiles: 3464792, traveller: 85024 };
+/** Expected bytes for texture files the manifest does not size (atlas.webp). */
+const TEXTURE_BYTES_FALLBACK = { 'art/atlas.webp': 2532524 };
+function stageTracker(jobs, onProgress, stage) {
+  const total = jobs.reduce((s, j) => s + (j.bytes || 0), 0) || 1;
+  const frac = jobs.map(() => 0);
+  return jobs.map((job, i) => (ev) => {
+    const loaded = (ev && ev.loaded) || 0;
+    const evTotal = (ev && ev.total) || 0;
+    frac[i] = evTotal > 0 ? Math.min(1, loaded / evTotal) : Math.min(1, loaded / (job.bytes || 1));
+    const stageFraction = frac.reduce((s, f, k) => s + f * (jobs[k].bytes || 0), 0) / total;
+    try {
+      if (onProgress) onProgress({ stage, file: job.file, fileLabel: job.label, loaded, total: evTotal || job.bytes || 0, stageFraction });
+    } catch (err) { /* progress reporting never breaks a load */ }
+  });
+}
+
 /** Paper, page and print maps from the runtime texture manifest (tolerates absence). */
-async function loadTextures(A, anisotropy) {
+async function loadTextures(A, anisotropy, onProgress) {
   const out = { paper: null, paperNormal: null, paperRough: null, manifest: null };
   const jobs = [];
   const manifest = await fetchJSON(A.manifestUrl);
   if (manifest && typeof manifest === 'object') {
     out.manifest = manifest;
+    const entries = [];
     for (const key of Object.keys(manifest)) {
       const e = manifest[key];
       if (!e || typeof e !== 'object' || !e.file) continue;
+      entries.push({ key, e });
+    }
+    const trackers = stageTracker(entries.map(({ e }) => ({ file: e.file, label: e.file.split('/').pop(), bytes: e.bytes || TEXTURE_BYTES_FALLBACK[e.file] || 100000 })), onProgress, 'textures');
+    for (let i = 0; i < entries.length; i++) {
+      const { key, e } = entries[i];
       const wrap = String(e.wrap || 'repeat');
-      jobs.push(loadTexture(A.texturesBase + e.file, { srgb: e.colorSpace === 'srgb', repeat: wrap.indexOf('repeat') >= 0, flipY: e.flipY !== false, anisotropy })
+      jobs.push(loadTexture(A.texturesBase + e.file, { srgb: e.colorSpace === 'srgb', repeat: wrap.indexOf('repeat') >= 0, flipY: e.flipY !== false, anisotropy }, trackers[i])
         .then((t) => {
           if (!t) { warn('texture missing:', e.file); return; }
           if (wrap === 'repeat,clamp') { t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; }
@@ -610,8 +987,24 @@ async function loadTextures(A, anisotropy) {
  * @returns {Promise<{getTilePrototype:(modelId:string)=>THREE.Group, traveller:THREE.Group,
  *   textures:Record<string,any>, modelIds:string[], source:'placeholder'|'gltf'|'mixed',
  *   meta:object|null, warnings:string[], stats:object}>}
+ * Options: { materials, renderer, quality, hanoi, onProgress }.
+ * onProgress(report) fires per loader event: { stage: 'glb' | 'textures',
+ * file, fileLabel, loaded, total, stageFraction 0..1 } - real byte progress
+ * (3D-04). The caller maps each stage onto its loading-screen % range.
+ *
+ * Phase 3D-02 ROLLBACK (2026-11-21): tiles.glb IS fetched again in Hanoi
+ * mode, like before Phase 3D - the spec assumed Hanoi uses no stock tiles,
+ * but the Hanoi map uses 14 stock tile ids on 1321 of 1600 cells (meadow,
+ * forest, pond, path, river, lantern_post, rocks...), so skipping tiles.glb
+ * turned 83% of the map into flat RECIPES placeholders, against the user
+ * requirement that the map stay as realistic as possible. The 47
+ * Hanoi-only models (279 cells) keep their GLB art from hanoi-tiles.glb.
+ * basic-grand.glb stays gated on NOT Hanoi: Hanoi uses none of its 6
+ * grand buildings, only non-Hanoi mode does. See
+ * docs/phase-3d-manifest.md (3D-02) for the full reason and numbers.
+ * Default (WFC) mode is unchanged: tiles.glb + basic-grand.glb still load.
  */
-export async function loadAssets({ materials, renderer, quality, hanoi = false } = {}) {
+export async function loadAssets({ materials, renderer, quality, hanoi = false, onProgress = null } = {}) {
   const A = CONFIG.assets;
   const caps = renderer && renderer.capabilities;
   const anisotropy = Math.min(8, (caps && caps.getMaxAnisotropy && caps.getMaxAnisotropy()) || 4);
@@ -627,9 +1020,30 @@ export async function loadAssets({ materials, renderer, quality, hanoi = false }
   };
   const noTex = () => ({ paper: null, paperNormal: null, paperRough: null, manifest: null });
 
-  const [tilesGltf, basicGrandGltf, hanoiGltf, travGltf, textures, meta] = await Promise.all([
-    loadGLTF(A.tilesUrl), !hanoi ? loadGLTF(A.basicGrandUrl) : Promise.resolve(null), hanoi ? loadGLTF(A.hanoiTilesUrl) : Promise.resolve(null), loadGLTF(A.travellerUrl), loadTextures(A, anisotropy).catch(noTex), fetchJSON(A.metaUrl),
-  ]);
+  // Phase 3D: the old single Promise.all is split into real stages, so the
+  // loading screen can report byte progress per stage (3D-04). Jobs inside
+  // one stage still load in parallel; stages run in order.
+  // Stage 1 - GLB models (main.js maps this to 20-45% "Tai ban do...").
+  const glbJobs = [];
+  // 3D-02 ROLLBACK: tiles.glb is fetched in BOTH modes (see the JSDoc above).
+  glbJobs.push({ key: 'tiles', url: A.tilesUrl, file: 'tiles.glb', label: 'tiles.glb 5.9 MB', bytes: GLB_BYTES.tiles });
+  if (!hanoi) glbJobs.push({ key: 'basicGrand', url: A.basicGrandUrl, file: 'basic-grand.glb', label: 'basic-grand.glb 0.7 MB', bytes: GLB_BYTES.basicGrand });
+  if (hanoi) glbJobs.push({ key: 'hanoiTiles', url: A.hanoiTilesUrl, file: 'hanoi-tiles.glb', label: 'hanoi-tiles.glb 3.5 MB', bytes: GLB_BYTES.hanoiTiles });
+  glbJobs.push({ key: 'traveller', url: A.travellerUrl, file: 'traveller.glb', label: 'traveller.glb 0.1 MB', bytes: GLB_BYTES.traveller });
+  const glbTrackers = stageTracker(glbJobs, onProgress, 'glb');
+  const glbResults = await Promise.all(glbJobs.map((job, i) => loadGLTF(job.url, glbTrackers[i])));
+  const glbByKey = {};
+  glbJobs.forEach((job, i) => { glbByKey[job.key] = glbResults[i]; });
+  const tilesGltf = glbByKey.tiles || null;
+  const basicGrandGltf = glbByKey.basicGrand || null;
+  const hanoiGltf = glbByKey.hanoiTiles || null;
+  const travGltf = glbByKey.traveller || null;
+  // Stage 2 - textures (main.js maps this to 45-65% "Dung nha ong...").
+  const textures = await loadTextures(A, anisotropy, onProgress).catch(noTex);
+  // Stage 3 - per-tile meta (assets_meta.json, 105 KB). fetchJSON gives no
+  // progress events, so this is a MOC GIA (fake) milestone in main.js: the
+  // file is tiny and the % jumps straight to the next stage when it lands.
+  const meta = await fetchJSON(A.metaUrl);
 
   const protos = new Map();
   const stats = { tiles: {}, traveller: null };

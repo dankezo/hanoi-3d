@@ -85,6 +85,12 @@ export function createAnimals({ scene, renderer, world, traveller, daynight, ass
   let tex = null;
   let loaded = false;
   let disposed = false;
+  // Phase 3D-03: the sheet loads in the background AFTER the first frame
+  // (main.js no longer awaits animals.ready). Once it lands, the animals
+  // fade in over 2.5 s instead of popping up at full size: fadeK scales
+  // every card in write() from 0 to 1. The spawn table is untouched.
+  let fadeK = 0;
+  const FADE_IN_S = 2.5;
   const SETS = {}; // species -> [pose set per coat]
   const SPEC = {}; // species -> config (with defaults)
   let artNames = [];
@@ -143,6 +149,7 @@ export function createAnimals({ scene, renderer, world, traveller, daynight, ass
       buildPoses(json);
       if (renderer && renderer.initTexture) renderer.initTexture(t); // upload now, not in the first frame that shows a cat
       loaded = true;
+      fadeK = 0; // start the 2.5 s fade-in (3D-03)
       mesh.visible = true;
       dirty = true;
       return true;
@@ -779,7 +786,7 @@ export function createAnimals({ scene, renderer, world, traveller, daynight, ass
   function write(sl, pose) {
     const o = sl.i * 16;
     const u = sl.s; const k1 = u - 1;
-    const k = (1 + 2.4 * k1 * k1 * k1 + 1.4 * k1 * k1) * C.scale * (sl.sp.size || 1); // pop: overshoot a little, like a card springing up
+    const k = (1 + 2.4 * k1 * k1 * k1 + 1.4 * k1 * k1) * C.scale * (sl.sp.size || 1) * fadeK; // pop: overshoot a little, like a card springing up (x fadeK: 3D-03 fade-in)
     const fk = Math.abs(sl.faceK);
     const w = pose.w * k * (fk < 0.1 ? 0.1 : fk); const h = pose.h * k;
     const c = Math.cos(sl.rock); const s = Math.sin(sl.rock);
@@ -796,6 +803,7 @@ export function createAnimals({ scene, renderer, world, traveller, daynight, ass
   function update(dt) {
     if (!loaded) return;
     clock += dt;
+    if (fadeK < 1) fadeK = Math.min(1, fadeK + dt / FADE_IN_S); // 3D-03 fade-in
     const nowNight = !!(daynight && daynight.night);
     if (nowNight !== night) { night = nowNight; dirty = true; }
     const p = traveller.position;

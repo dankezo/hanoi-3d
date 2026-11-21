@@ -5,7 +5,12 @@
 // without diacritics, matching the app convention. Language order in the card: VI first, EN
 // second (2C language detection lands later). No long dashes in this file: only short hyphens (-).
 //
-// Shape per landmark: { nameEN, nameVI, histEN[3], histVI[3], funEN, funVI, source }.
+// Shape per landmark: { nameEN, nameVI, histEN[3], histVI[3], funEN, funVI, source,
+//   summaryEN, summaryVI, funShortEN, funShortVI }.
+// Phase 3C adds one summary sentence per language (<= 20 words) and one shortened
+// fun fact per language (<= 15 words) for the card's layer (a). Both are faithful
+// shortenings of the verified history / fun fact above: no new event, year or
+// number is introduced. histEN/histVI/funEN/funVI/source are NOT touched here.
 
 export const LANDMARK_INFO = Object.freeze({
   hoankiem: Object.freeze({
@@ -23,6 +28,10 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'The Turtle Tower is not ancient at all - it was built in 1886 by a wealthy landowner, Ba Ho Kim, as a family tomb, and only later became the symbol of the sword legend. The lake\'s last giant softshell turtle, "Cu Rua", died on 19 January 2016 and is now preserved on display inside Ngoc Son Temple.',
     funVI: 'Thap Rua khong he co nhu nhieu nguoi tuong - no duoc xay nam 1886 boi mot phu ho ten Ba ho Kim lam mo gia dinh, mai sau moi gan voi truyen thuyet guom than. Cu rua kho lo cuoi cung cua ho chet ngay 19/1/2016, hien duoc bao quan trung bay trong den Ngoc Son.',
+    summaryEN: 'A central Hanoi lake tied to the legend of King Le Loi returning his sword in 1428.',
+    summaryVI: 'Ho giua long Ha Noi, gan voi truyen thuyet vua Le Loi tra guom cho rua vang nam 1428.',
+    funShortEN: 'The tower was once a family tomb; the last giant turtle died in 2016.',
+    funShortVI: 'Thap Rua tung la mo gia dinh; Cu Rua chet nam 2016.',
     source: 'https://en.wikipedia.org/wiki/Ho%C3%A0n_Ki%E1%BA%BFm_Lake',
   }),
   ngocson: Object.freeze({
@@ -40,6 +49,10 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'Inside the temple you can see two preserved giant softshell turtles from Hoan Kiem Lake - one from 1967 and "Cu Rua", the last one, from 2016 - kept in glass cases. The Pen Tower and Ink Slab at the entrance stand for the pen and ink of scholars: knowledge is the temple\'s real treasure.',
     funVI: 'Trong den co hai tieu ban rua kho lo cua ho Hoan Kiem - mot con tu nam 1967 va "Cu Rua" cuoi cung tu nam 2016 - duoc giu trong tu kinh. Thap But va Dai Nghien o cong vao tuong trung cho but va muc cua ke si: tri thuc moi la bau vat that cua den.',
+    summaryEN: 'A temple on Jade Island in Hoan Kiem Lake, reached by the red The Huc Bridge.',
+    summaryVI: 'Den tren dao Ngoc giua ho Hoan Kiem, tho Tran Hung Dao, noi bang cau The Huc do.',
+    funShortEN: 'Two preserved giant turtles are kept inside, from 1967 and 2016.',
+    funShortVI: 'Trong den co hai tieu ban rua kho lo, 1967 va 2016.',
     source: 'https://vietnamtourexpert.com/ngoc-son-temple/',
   }),
   westlake: Object.freeze({
@@ -57,6 +70,31 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'The bodhi tree in Tran Quoc Pagoda\'s courtyard grew from a cutting of the Bodhi tree at Bodh Gaya in India, a gift from President Rajendra Prasad during his visit in 1959. Legend also says a golden buffalo calf trampled the ground to form the lake while chasing its mother\'s call.',
     funVI: 'Cay bo de trong san chua Tran Quoc moc tu mot canh chiet cua cay bo de o Bodh Gaya, An Do - mon qua cua Tong thong Rajendra Prasad khi tham Viet Nam nam 1959. Truyen thuyet con ke mot chu trau vang da giam nat mat dat tao thanh ho khi chay di tim me.',
+    summaryEN: "Hanoi's largest lake, about 500 hectares, formed from an old bend of the Red River.",
+    summaryVI: 'Ho lon nhat Ha Noi, rong khoang 500 ha, tung la mot khuc song Hong cu.',
+    funShortEN: "Tran Quoc's bodhi tree grew from a cutting of the Bodhi tree at Bodh Gaya.",
+    funShortVI: 'Cay bo de chua Tran Quoc moc tu canh chiet o Bodh Gaya, An Do.',
+    source: 'https://en.wikipedia.org/wiki/West_Lake_(Hanoi)',
+  }),
+  tranquoc: Object.freeze({
+    nameEN: 'Tran Quoc Pagoda',
+    nameVI: 'Chua Tran Quoc',
+    histEN: Object.freeze([
+      'The oldest pagoda in Hanoi, founded in the 6th century under Emperor Ly Nam De as Khai Quoc Pagoda, on the bank of the Red River.',
+      'In 1615 the pagoda was moved onto a small islet at the south-east end of West Lake, where it stands today, reached from the shore by a low stone bridge.',
+      'Its 11-storey hexagonal tower is the pagoda\'s highest point: the tiers shrink as they rise, each with six arched openings, topped by a spire.',
+    ]),
+    histVI: Object.freeze([
+      'Ngoi chua co nhat Ha Noi, dung tu the ky 6 duoi thoi Ly Nam De voi ten Khai Quoc, tren bo song Hong.',
+      'Nam 1615 chua duoc doi ra mot dao nho o dau dong nam ho Tay, noi no dung den nay, noi voi bo bang mot cay cau da thap.',
+      'Bao thap luc giac 11 tang la diem cao nhat cua chua: cac tang thu nho dan khi len cao, moi tang co sau cua vom, dinh la ngon thap.',
+    ]),
+    funEN: 'The bodhi tree shading the pagoda courtyard grew from a cutting of the Bodhi tree at Bodh Gaya in India, a gift from President Rajendra Prasad during his visit in 1959.',
+    funVI: 'Cay bo de toa bong trong san chua moc tu mot canh chiet cua cay bo de o Bodh Gaya, An Do - mon qua cua Tong thong Rajendra Prasad khi tham Viet Nam nam 1959.',
+    summaryEN: "Hanoi's oldest pagoda, founded in the 6th century and moved onto West Lake in 1615.",
+    summaryVI: 'Chua co nhat Ha Noi, dung the ky 6, doi ra dao dau dong nam ho Tay nam 1615.',
+    funShortEN: "The courtyard bodhi tree was a gift from India's president in 1959.",
+    funShortVI: 'Bo de san chua la qua Tong thong An Do 1959.',
     source: 'https://en.wikipedia.org/wiki/West_Lake_(Hanoi)',
   }),
   oldquarter: Object.freeze({
@@ -74,6 +112,10 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'The number 36 never matched the map exactly - scholars still cannot agree on the exact list of the 36 guilds, and some streets still sell exactly what their names say: Hang Bac still sells silver, Hang Ma still sells votive paper.',
     funVI: 'Con so 36 chua bao gio khop dung voi ban do - cac nha nghien cuu den nay van chua thong nhat duoc danh sach 36 phuong, va mot so pho van ban dung thu ten minh: Hang Bac van ban bac, Hang Ma van ban vang ma.',
+    summaryEN: 'A merchant quarter from 1010, where each street still bears the name of its old trade.',
+    summaryVI: 'Khu pho buon tu nam 1010, moi pho mang ten mot nghe, bat dau bang chu Hang.',
+    funShortEN: 'The number 36 never matched the map; Hang Bac still sells silver.',
+    funShortVI: 'Con so 36 chua khop ban do; Hang Bac van ban bac.',
     source: 'https://en.wikipedia.org/wiki/Old_Quarter,_Hanoi',
   }),
   mausoleum: Object.freeze({
@@ -91,6 +133,10 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'Ho Chi Minh\'s own will asked to be cremated, with his ashes scattered over the hills of the north, centre and south - the mausoleum was built against his wishes so people could pay respects. When the design was chosen, 200 proposals were exhibited and 745,487 visitors left 34,022 opinions.',
     funVI: 'Di chuc cua Bac dan hoa tang, tro rai tren doi nui ba mien Bac - Trung - Nam, nhung Lang van duoc xay trai y nguyen de nhan dan den vieng. Khi chon thiet ke, 200 phuong an duoc trung bay va 745.487 luot nguoi xem da de lai 34.022 y kien.',
+    summaryEN: 'A granite mausoleum on Ba Dinh Square holding the body of President Ho Chi Minh.',
+    summaryVI: 'Lang da tren Quang truong Ba Dinh, giu thi hai Chu tich Ho Chi Minh.',
+    funShortEN: 'His will asked for cremation, yet the mausoleum was built for public respects.',
+    funShortVI: 'Di chuc Bac dan hoa tang, Lang duoc xay de dan vieng.',
     source: 'https://en.wikipedia.org/wiki/Ho_Chi_Minh_Mausoleum',
   }),
   vanmieu: Object.freeze({
@@ -108,6 +154,10 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'Each of the 82 doctor stelae stands on the back of a carved stone tortoise, the symbol of longevity and wisdom - the first were erected in 1484 under Emperor Le Thanh Tong. Students used to rub the tortoises\' heads for luck before exams; the stelae are now fenced off to protect them.',
     funVI: 'Moi tam trong 82 tam bia tien si deu dung tren lung mot con rua da cham khac, bieu tuong cua truong tho va tri tue - nhung tam dau tien duoc dung nam 1484 duoi thoi vua Le Thanh Tong. Si tu ngay xua hay so dau rua lay may truoc ky thi; nay bia da duoc rao lai de bao ve.',
+    summaryEN: "A Confucian temple from 1070 housing Quoc Tu Giam, Vietnam's first national university.",
+    summaryVI: 'Van Mieu dung nam 1070 tho Khong Tu, Quoc Tu Giam la truong dai hoc dau tien.',
+    funShortEN: 'The 82 doctor stelae stand on stone tortoises, the first raised in 1484.',
+    funShortVI: 'Bia tien si tren lung rua da, dau nam 1484.',
     source: 'https://en.wikipedia.org/wiki/Temple_of_Literature,_Hanoi',
   }),
   onepillar: Object.freeze({
@@ -125,6 +175,10 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'In 2012 the Asia Records Organization recognised it as the pagoda with the most unique architecture in Asia. Its formal name, Dien Huu, means "long-lasting blessings".',
     funVI: 'Nam 2012, To chuc Ky luc chau A cong nhan day la ngoi chua co kien truc doc dao nhat chau A. Ten chinh thuc cua chua la Dien Huu, nghia la "phuc lanh dai lau".',
+    summaryEN: 'A small shrine on a single stone pillar in a lotus pond, built in 1049.',
+    summaryVI: 'Chua nho tren mot cot da giua ho sen, xay nam 1049 tu giac mo Ly Thai Tong.',
+    funShortEN: "In 2012 it was recognised as Asia's most uniquely designed pagoda.",
+    funShortVI: 'Nam 2012 chua duoc cong nhan kien truc doc dao chau A.',
     source: 'https://en.wikipedia.org/wiki/One_Pillar_Pagoda',
   }),
   cathedral: Object.freeze({
@@ -142,6 +196,10 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'The cathedral was built on the ruins of an 11th-century Buddhist pagoda - so the oldest church in Hanoi stands exactly where the greatest pagoda of old Thang Long once stood. Locals call it "Nha Tho Lon" (the Big Church).',
     funVI: 'Nha tho duoc xay tren nen mot ngoi chua Phat giao tu the ky 11 - tuc la nha tho co nhat Ha Noi dung dung cho ngoi chua lon nhat cua Thang Long xua. Nguoi Ha Noi goi than mat la "Nha Tho Lon".',
+    summaryEN: "Hanoi's oldest church, built 1884-1886 in Neo-Gothic style with twin 31.5 m bell towers.",
+    summaryVI: 'Nha tho co nhat Ha Noi, xay 1884-1886 theo kieu Tan Gothic, hai thap chuong 31,5 m.',
+    funShortEN: 'It stands on an 11th-century pagoda site; locals call it the Big Church.',
+    funShortVI: 'Nha tho tren nen chua the ky 11, Nha Tho Lon.',
     source: 'https://en.wikipedia.org/wiki/St._Joseph%27s_Cathedral,_Hanoi',
   }),
   opera: Object.freeze({
@@ -159,6 +217,10 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'To build on the swampy ground near the Red River, engineers drove tens of thousands of bamboo stakes into the soil before pouring the foundations (sources say 30,000-35,000). In colonial times the 870-seat hall stood mostly empty outside the winter opera season - the French government paid an opera company to sing each winter at the native taxpayer\'s expense.',
     funVI: 'De xay tren nen dat lay gan song Hong, tho da dong hang chuc nghin coc tre xuong dat roi moi do mong (cac nguon ghi 30.000-35.000 coc). Thoi thuoc dia, khan phong 870 ghe phan lon thoi gian bo trong ngoai mua opera mua dong - chinh quyen Phap thue han mot doan opera hat moi mua dong bang tien thue cua dan ban xu.',
+    summaryEN: 'An opera house built 1901-1911 after the Palais Garnier, where the August Revolution began in 1945.',
+    summaryVI: 'Nha hat xay 1901-1911 mau Palais Garnier, noi mo dau Cach mang thang Tam nam 1945.',
+    funShortEN: 'Workers drove tens of thousands of bamboo stakes to found the theatre.',
+    funShortVI: 'Tho dong hang chuc nghin coc tre lam mong truoc khi xay.',
     source: 'https://en.wikipedia.org/wiki/Hanoi_Opera_House',
   }),
   longbien: Object.freeze({
@@ -176,6 +238,10 @@ export const LANDMARK_INFO = Object.freeze({
     ]),
     funEN: 'It was NOT designed by Gustave Eiffel - Dayde & Pille beat Eiffel\'s firm in the competition. Hanoians nicknamed it "an Eiffel Tower laid on its side". US bombs destroyed 1,500 m of the bridge, 9 spans and 4 pillars, yet after the 1973 peace accords it was repaired in just 41 days for the first train on 4 March 1973.',
     funVI: 'Cau KHONG phai do Gustave Eiffel thiet ke - hang Dayde & Pille da thang thau truoc hang cua Eiffel. Nguoi Ha Noi goi no la "thap Eiffel nam ngang". Bom My pha huy 1.500 m cau, 9 nhip va 4 tru, vay ma sau Hiep dinh Paris 1973, cau duoc sua xong chi trong 41 ngay de chuyen tau dau tien chay ngay 4/3/1973.',
+    summaryEN: 'The first steel bridge over the Red River, built 1899-1902, 2.4 km long and still in use.',
+    summaryVI: 'Cau thep dau tien bac qua song Hong, xay 1899-1902, dai 2,4 km, van co tau chay qua.',
+    funShortEN: 'Not designed by Eiffel; Hanoians call it an Eiffel Tower on its side.',
+    funShortVI: 'Cau khong do Eiffel thiet ke, dan goi la thap Eiffel nam ngang.',
     source: 'https://en.wikipedia.org/wiki/Long_Bi%C3%AAn_Bridge',
   }),
 });
@@ -198,5 +264,5 @@ export const DATASET_PROVENANCE = Object.freeze({
   source: 'https://github.com/dankezo/hanoi-3d',
   license: 'MIT',
   watermark: 'HANOI3D-DANKEZO-WM-9Q7K2M',
-  order: Object.freeze(['hoankiem', 'ngocson', 'westlake', 'oldquarter', 'mausoleum', 'vanmieu', 'onepillar', 'cathedral', 'opera', 'longbien']),
+  order: Object.freeze(['hoankiem', 'ngocson', 'westlake', 'tranquoc', 'oldquarter', 'mausoleum', 'vanmieu', 'onepillar', 'cathedral', 'opera', 'longbien']),
 });

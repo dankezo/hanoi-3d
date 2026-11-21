@@ -1,7 +1,8 @@
 // Static Hanoi map provider (owner: hanoi agent). Same interface as src/world/wfc.js createWFC:
 //   { seed, get(x, z), peek(x, z), ensureRegion(cx, cz, r), size, stats, chunkSize: 8, chunkInfo(x, z) }
 // Differences from WFC: the page is a fixed 40x40 authored grid (src/world/hanoi-map.js),
-// there is no origin offset (grid coords ARE world cell coords, spawn (0, 0) is a path tile),
+// there is no origin offset (grid coords ARE world cell coords, spawn (0, 5) is a sidewalk tile
+// on the promenade south of Hoan Kiem Lake - Phase 3B, see HANOI_SPAWN in hanoi-map.js),
 // and every cell record carries an extra `landmarkId` (string id or null).
 // Landmark rule: every cell belonging to a landmark's area carries that landmark's id;
 // single-building landmarks tag just their one cell. Step 4 (discovery / checklist) reads
@@ -15,7 +16,7 @@
 // No long dashes in this file: only short hyphens (-).
 import { getTile, socketsOf } from './tiles.js';
 import { getHanoiTile, hanoiSocketsOf } from './hanoi-models.js';
-import { HANOI_SIZE, HANOI_MIN, HANOI_OFFSET, HANOI_ROWS, HANOI_LEGEND, HANOI_LANDMARKS } from './hanoi-map.js';
+import { HANOI_SIZE, HANOI_MIN, HANOI_OFFSET, HANOI_ROWS, HANOI_LEGEND, HANOI_LANDMARKS, HANOI_SPAWN } from './hanoi-map.js';
 
 const COORD_LIMIT = 1 << 24;
 const MAX = HANOI_MIN + HANOI_SIZE - 1; // 19
@@ -36,6 +37,9 @@ export function createHanoi({ seed = 1, data = null } = {}) {
   const rows = data && Array.isArray(data.rows) ? data.rows : HANOI_ROWS;
   const legend = data && data.legend ? data.legend : HANOI_LEGEND;
   const landmarkAreas = data && data.landmarks ? data.landmarks : HANOI_LANDMARKS;
+  // Phase 3B: spawn cell [x, z] for the traveller (bundled HANOI_SPAWN, or the edge
+  // override's spawn when present). main.js initialPosition() reads world.spawn.
+  const spawn = data && Array.isArray(data.spawn) ? data.spawn.slice(0, 2) : HANOI_SPAWN.slice();
   const stats = { chunks: 1, attempts: 0, backtracks: 0, restarts: 0, strictChunks: 0, fallbackChunks: 0, planFails: 0, validateFails: 0, evicted: 0 };
 
   // landmarkId lookup: "x,z" -> id (a cell belongs to at most one landmark area)
@@ -74,6 +78,8 @@ export function createHanoi({ seed = 1, data = null } = {}) {
 
   return {
     seed,
+    /** Spawn cell [x, z] for the traveller (Phase 3B: promenade south of Hoan Kiem Lake). */
+    spawn,
     /** Collapsed cell. Always returns a valid cell; never throws. */
     get(x, z) {
       if ((x | 0) !== x || (z | 0) !== z || x > COORD_LIMIT || x < -COORD_LIMIT || z > COORD_LIMIT || z < -COORD_LIMIT) { x = sane(+x); z = sane(+z); }

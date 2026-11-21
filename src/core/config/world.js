@@ -83,7 +83,7 @@ export const world = {
   waterPadding: 0.03,
   pondRadius: 0.62,
   /** Biome tiles with an off-centre pond: model id -> [u (east), v (south), radius] in the tile's rot-0 frame. */
-  ponds: { desert_oasis: [0.12, 0.16, 0.48], frozen_pond: [0.08, 0.2, 0.56] },
+  ponds: { desert_oasis: [0.12, 0.16, 0.48], frozen_pond: [0.08, 0.2, 0.56], hanoi_pond_guom: [0, 0, 0.62], hanoi_pond_tay: [0, 0, 0.62], hanoi_lotus: [0, 0, 0.62] },
   /** Bridge deck: walkable half-width and height profile fallback when the model has no deck surface. */
   deckHalfWidth: 0.31,
   deckFallbackHeight: 0.0,

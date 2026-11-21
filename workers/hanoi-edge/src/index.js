@@ -46,14 +46,14 @@ export const GAME_URL = 'https://dankezo.github.io/hanoi-3d/?map=hanoi';
 export const REPO_URL = 'https://github.com/dankezo/hanoi-3d';
 export const ALLOWED_ORIGIN = 'https://dankezo.github.io';
 /** One-line declaration, same text as data/provenance.json `declaration`. */
-export const DECLARATION_TEXT = 'Hanoi 3D dataset by dankezo (MIT): the 40x40 Hanoi map and the 10 landmark histories in github.com/dankezo/hanoi-3d are the author\'s data, metered per identity when served via the edge API, with canary records HANOI3D-CANARY-MAP-7F3A9D / HANOI3D-CANARY-HIST-2B8E41 and watermark HANOI3D-DANKEZO-WM-9Q7K2M. Static art stays copyable.';
+export const DECLARATION_TEXT = 'Hanoi 3D dataset by dankezo (MIT): the 40x40 Hanoi map and the 11 landmark histories in github.com/dankezo/hanoi-3d are the author\'s data, metered per identity when served via the edge API, with canary records HANOI3D-CANARY-MAP-7F3A9D / HANOI3D-CANARY-HIST-2B8E41 and watermark HANOI3D-DANKEZO-WM-9Q7K2M. Static art stays copyable.';
 /** Step-up price, USD. A signal only: settlement is always "none". */
 export const STEP_UP_PRICE_USD = 0.001;
 
-/** Record ids the API can serve: 1 map record + 10 landmark records. */
+/** Record ids the API can serve: 1 map record + 11 landmark records. */
 export const RECORD_IDS = Object.freeze(['map:grid', ...Object.keys(LANDMARK_INFO)]);
 export const LANDMARK_IDS = Object.freeze(Object.keys(LANDMARK_INFO));
-/** Herd record index: map 0, landmarks 1-10 in checklist order. */
+/** Herd record index: map 0, landmarks 1-11 in checklist order. */
 const RECORD_INDEX = new Map(RECORD_IDS.map((id, i) => [id, i]));
 
 /**
@@ -101,11 +101,11 @@ function parseCookies(header) {
  * app for the Worker; tests build fresh apps via this factory so state
  * never leaks between cases.
  *
- * opts: { recordBudgetMax (default 11 = the whole dataset per 24h),
+ * opts: { recordBudgetMax (default 12 = the whole dataset per 24h),
  *   quotaMaxRequests (default 120 per hour), onTrapAlert, onHerdFlag }
  */
 export function createHanoiEdgeApp(opts = {}) {
-  const recordBudgetMax = opts.recordBudgetMax ?? 11;
+  const recordBudgetMax = opts.recordBudgetMax ?? 12;
   const quotaMaxRequests = opts.quotaMaxRequests ?? 120;
   const onTrapAlert = opts.onTrapAlert || null;
   const onHerdFlag = opts.onHerdFlag || null;
@@ -126,11 +126,11 @@ export function createHanoiEdgeApp(opts = {}) {
     },
   });
   const herd = createHerdDetector({
-    // Lab numbers, RESCALED to an 11-record dataset (the library defaults
+    // Lab numbers, RESCALED to a 12-record dataset (the library defaults
     // assume 10,000 records and could never flag here). Still lab numbers,
     // not measured traffic: re-tune from real traffic after deployment.
-    combinedCoverageFloor: 11,
-    coverageRampDenominator: 11,
+    combinedCoverageFloor: 12,
+    coverageRampDenominator: 12,
     flagThreshold: 60,
     flagMinMembers: 3,
     minOwnRecords: 2,
@@ -152,7 +152,7 @@ export function createHanoiEdgeApp(opts = {}) {
   const maze = createCanaryMaze({ enabled: true, prefix: '/_canary/' });
   const issuedStepUp = new Map(); // sessionId -> { token, expiresAt }
   // Record ids each identity has already been served (re-reads cost 0, the
-  // same rule the record budget uses internally). Bounded: at most 11 ids
+  // same rule the record budget uses internally). Bounded: at most 12 ids
   // per identity, and the map itself is capped below.
   const seenByIdentity = new Map(); // identity -> Set(recordId)
   let watermarkCache = { key: null, marked: null };
@@ -322,7 +322,7 @@ export function createHanoiEdgeApp(opts = {}) {
         source: REPO_URL,
         license: 'MIT',
         live: GAME_URL,
-        dataset: 'Hanoi map (40x40 grid + landmark positions) + 10 landmark histories',
+        dataset: 'Hanoi map (40x40 grid + landmark positions) + 11 landmark histories',
         watermark: 'HANOI3D-DANKEZO-WM-9Q7K2M',
         canary: { ids: [...CANARY_IDS], markers: ['HANOI3D-CANARY-MAP-7F3A9D', 'HANOI3D-CANARY-HIST-2B8E41'] },
         declaration: DECLARATION_TEXT,

@@ -8,7 +8,7 @@ Fork of [xikhar/papertrails](https://github.com/xikhar/papertrails) (MIT licence
 
 ## The Hanoi map
 
-Open [the Hanoi map](https://dankezo.github.io/hanoi-3d/?map=hanoi) (`?map=hanoi`) for a fixed 40x40 paper map of the city with 10 landmarks to discover: Hoan Kiem Lake, Ngoc Son Temple, West Lake, the Old Quarter, Ho Chi Minh Mausoleum, Temple of Literature, One Pillar Pagoda, St. Joseph's Cathedral, Hanoi Opera House and Long Bien Bridge. Walk up to a landmark to check it off the list (top left), with a toast and a corner minimap. Without the flag you get the original endless procedurally generated world instead.
+Open [the Hanoi map](https://dankezo.github.io/hanoi-3d/?map=hanoi) (`?map=hanoi`) for a fixed 40x40 paper map of the city with 11 landmarks to discover: Hoan Kiem Lake, Ngoc Son Temple, West Lake, Tran Quoc Pagoda, the Old Quarter, Ho Chi Minh Mausoleum, Temple of Literature, One Pillar Pagoda, St. Joseph's Cathedral, Hanoi Opera House and Long Bien Bridge. Walk up to a landmark to check it off the list (top left), with a toast and a corner minimap. Without the flag you get the original endless procedurally generated world instead.
 
 ## How to play
 

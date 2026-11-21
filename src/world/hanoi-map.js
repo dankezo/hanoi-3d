@@ -1,26 +1,33 @@
 // Hanoi static map (owner: hanoi agent). The authored 40x40 page for ?map=hanoi.
 // DATA ONLY: one ASCII char per cell, plus a legend and the landmark areas.
 // Grid coords x, z in [-20, 19]; row 0 is the north edge (z = -20), col 0 is the west edge (x = -20).
-// The traveller spawns at (0, 0), a path_straight on the street just south of Hoan Kiem Lake.
+// The traveller spawns at (0, 5), a sidewalk on the promenade just south of Hoan Kiem Lake
+// (Phase 3B: the old spawn (0, 0) is pond now - the lake rect covers it).
 // No long dashes in this file: only short hyphens (-).
 //
 // Landmark model mapping (Step 3 placeholder models, Hanoi-only registry in src/world/hanoi-models.js):
-//   hoankiem  - pond cluster + hanoi_turtletower at (-1, -2) = Turtle Tower, causeway at (-1, -1)
+//   hoankiem  - redrawn lake 4x12 (x -2..1, z -7..4) + hanoi_turtletower at (-1, -1) on a 1-cell island mid-lake, no bridge
 //   ngocson   - hanoi_ngocson at (5, -2) rot 1 (door west) + hanoi_thehuc at (3, -2) over a river channel
 //   vanmieu   - hanoi_vanmieu at (-8, 11) = Temple of Literature
 //   mausoleum - hanoi_mausoleum at (-12, 3) + hanoi_badinh at (-12, 5) = Ba Dinh Square
 //   onepillar - hanoi_onepillar at (-8, 4) beside a pond at (-7, 4)
 //   cathedral - hanoi_cathedral at (7, -1) = St Joseph's Cathedral
 //   longbien  - hanoi_longbien rot 1 at (17, -6) and (18, -6) over the Red River
-//   westlake  - pond cluster NW + hanoi_tranquoc at (-9, -11) rot 0 = Tran Quoc Pagoda on the east shore
-//   oldquarter - hanoi_tubehouse / hanoi_tubehouse_b / hanoi_tubehouse_green streets, x -8..2, z -9..-3
+//   westlake  - big lake 13x14 (x -19..-7, z -19..-6), 130 water cells, lotus pond at the SW corner
+//   tranquoc  - hanoi_tranquoc at (-13, -12) rot 3 (door east) on a 1-cell island mid-lake + stone bridge to the shore
+//   oldquarter - hanoi_tubehouse / hanoi_tubehouse_b / hanoi_tubehouse_green streets, x -8..-3, z -9..-3 (the lake eats the east part)
 //   opera     - hanoi_opera at (9, 7) = Hanoi Opera House
-// The Red River (x 17..18) starts in river_source springs at z = -19 and ends in
+// Pen Tower (hanoi_pentower, no checklist) stands at (2, -6) on the north-east shore of Hoan Kiem Lake.
+// The Red River (x 16..18 below the bridge, x 17..18 above it) starts in river_source springs at z = -19 and ends in
 // river_source sinks at z = 18, so no river socket ever faces off the page.
 
 export const HANOI_SIZE = 40;
 export const HANOI_MIN = -20;
 export const HANOI_OFFSET = 20;
+
+// Phase 3B: the traveller spawns on the promenade south of Hoan Kiem Lake (sidewalk at
+// (0, 5)); the old spawn (0, 0) is lake water now. main.js initialPosition() reads this.
+export const HANOI_SPAWN = Object.freeze([0, 5]);
 
 // Dataset provenance marker (Phase 2D). Same watermark family as
 // DATASET_PROVENANCE in src/game/landmark-history.js: if a copy of this map
@@ -31,32 +38,32 @@ export const HANOI_DATASET_MARKER = 'HANOI3D-DANKEZO-WM-9Q7K2M';
 
 export const HANOI_ROWS = Object.freeze([
   'HFFFFHFFFFHFFFFHFFFFHFFFFHFFFFHFFFFHFFFH',
-  'FG~~~~~~FFFFHGFFFFHGFFFFHGFFFFHGFFFFHssF',
-  'F~~~~~~~~........................FFFF!!F',
-  'F~~~~~~~~~.......................FFFF!!F',
-  'FF~~~~~~~~~......................FFFF!!F',
-  'HF~~~~~~~~~......................FFFF!!H',
-  'FH.~~~~~~~~..........................!!F',
-  'FG.~~~~~~~...........................!!F',
-  'FF..~~~~~~~......................HHH.!!F',
-  'FF...~~~~~.M.....................HHH.!!F',
-  'HF....~~~~.|..e..e..........,,,,.HHH.!!H',
-  'FF.....~~..|TqVqTvq.qTq.....,,,,.....!!F',
-  'FH.....,,,.|l.v..V....l.....,,,,.....!!F',
-  'FGFFFF.,,,.|.kVkjok.k................!!F',
-  'FFFFFF...h-+UiXOiXuQUiO---a-=---=----BBf',
-  'HFFFFF.....|Ykoj.Vk..jZ...|..........!!H',
-  'FF...~~....|T.V..v.....s..|...GGGG...!!F',
-  'FF.........|..D..D.....!..|...GGGG...!!F',
-  'FH.........|.....~~W~~hJ-m|...GGGG...!!F',
-  'FG.........|.....~~|~~~S..|C..GGGG...!!F',
-  'HFGGG..h-a-+-------c-a----+c----f....!!H',
-  'FFGGG....|.|.........|....|..........!!F',
-  'FFGGG....|.|...,,,,..|,,,,|,,,,...R..!!F',
-  'FF......A|.|...,,,,..|,,,,|,,,,.~~...!!F',
-  'FH......e|h+p~.,,,,..|,,,,|..........!!F',
-  'HG....h-Kb.|...GGG...|GGG.|......R...!!H',
-  'FF......||.|...GGG...|GGG.|..........!!F',
+  'FG*********FHGFFFFHGFFFFHGFFFFHGFFFFHssF',
+  'FF*********.**...................FFFF!!F',
+  'FF*********.*....................FFFF!!F',
+  'FF*********......................FFFF!!F',
+  'HH*********......................FFFF!!H',
+  'FF***********........................!!F',
+  'FF***********........................!!F',
+  'FF*****/#f.......................HHH.!!F',
+  'FF***********....................HHH.!!F',
+  'HF*********e*.e..e..........,,,,.HHH.!!H',
+  'FF*********|Tq@qTvq.qTq88...,,,,.....!!F',
+  'FH???******|l.v..Vkkkkl8T...,,,,.....!!F',
+  'FG??*******|z9Vkjo9;;909.............!!F',
+  'FF*******h-+^iNOib;;;;$yiQa-=---=----BBf',
+  'HFFFFF.....|Y9ojxV;;;;Z965|.........s!!H',
+  'FF...~~....|Y.V..o;;;;TskI|...GGGG..!!!F',
+  'FF.........|65DPID;;;;;!k.|...GGGG..!!!F',
+  'FH......n..|......;;;;hJ-m|...GGGG..!!!F',
+  'FG......n..|......;W;;;S..|C..GGGG..!!!F',
+  'HFGGG..h-a-+-----f;;;;h---+c----f...!!!H',
+  'FFGGG...n|%|.....7;;;;T7..|.........!!!F',
+  'FFGGG...n|%|...,77;;;;Tj9,|,,,,...R.!!!F',
+  'FF.....&A|.|...,,,;;;;j,9,|,,,,.~~..!!!F',
+  'FH......e|h+p~.,,,9;;9j,,,|.........!!!F',
+  'HG....h-Kb.|...GGTkkkejGG.|......R..S!!H',
+  'FF......||.|...GGG..l|jGG.|..........!!F',
   'FF......gg.|...GGG...|GGG.|..r.......!!F',
   'FF....R..h-+--a------+----c--c--f....!!F',
   'FF.........|..|......|...............!!F',
@@ -152,6 +159,41 @@ export const HANOI_LEGEND = Object.freeze({
   l: { tileId: 'hanoi_pole', rot: 0 },
   j: { tileId: 'hanoi_lamp', rot: 0 },
   y: { tileId: 'house', rot: 0 },
+  // Phase 3A street elements (vibe Ha Noi that). New chars are previously free letters,
+  // digits and symbols, except P, y and ^: those three mapped to stock models with ZERO
+  // cells in this map (blossom_gazebo, house, bridge) and are repurposed here; the stock
+  // models stay in MODELS for the default WFC path, only their legend chars move.
+  // N corner house (path_cross sockets), n west alley, x/z/0/P the 4 beer signs,
+  // 9 flag, 8 banner, 7 sau tree, 6/5/I parked bikes red/blue/black, % mural wall,
+  // y street vendor (village rot 1 sockets), ^ street pho stall (village rot 1),
+  // @ pole on the house row (village rot 0 sockets, blocker like a tubehouse).
+  N: { tileId: 'hanoi_cornerhouse', rot: 0 },
+  n: { tileId: 'hanoi_alley', rot: 0 },
+  x: { tileId: 'hanoi_sign_phoco', rot: 0 },
+  z: { tileId: 'hanoi_sign_biahoi', rot: 0 },
+  0: { tileId: 'hanoi_sign_trucbach', rot: 0 },
+  P: { tileId: 'hanoi_sign_paramount', rot: 0 },
+  9: { tileId: 'hanoi_flag', rot: 0 },
+  8: { tileId: 'hanoi_banner', rot: 0 },
+  7: { tileId: 'hanoi_sautree', rot: 0 },
+  6: { tileId: 'hanoi_bike_red', rot: 0 },
+  5: { tileId: 'hanoi_bike_blue', rot: 0 },
+  I: { tileId: 'hanoi_bike_black', rot: 0 },
+  y: { tileId: 'hanoi_vendor_street', rot: 1 },
+  '^': { tileId: 'hanoi_phostall_street', rot: 1 },
+  '@': { tileId: 'hanoi_pole_street', rot: 0 },
+  '%': { tileId: 'hanoi_mural', rot: 0 },
+  // Phase 3B lake chars. ';' Ho Guom pond (dark green water), '*' Ho Tay pond (deep blue
+  // water), '?' lotus pond, '#' low stone bridge to the Tran Quoc islet (E-W path sockets
+  // written in the model, so rot 0), '$' Pen Tower (watchtower rot 3 sockets, path east),
+  // '&' mausoleum side wing, '/' Tran Quoc Pagoda rot 3 (door east, toward the bridge).
+  ';': { tileId: 'hanoi_pond_guom', rot: 0 },
+  '*': { tileId: 'hanoi_pond_tay', rot: 0 },
+  '?': { tileId: 'hanoi_lotus', rot: 0 },
+  '#': { tileId: 'hanoi_stonebridge', rot: 1 },
+  '$': { tileId: 'hanoi_pentower', rot: 3 },
+  '&': { tileId: 'hanoi_mausoleum_wing', rot: 0 },
+  '/': { tileId: 'hanoi_tranquoc', rot: 3 },
 });
 
 // Landmark areas. Rule: every cell belonging to a landmark's area carries that landmark's id
@@ -159,10 +201,11 @@ export const HANOI_LEGEND = Object.freeze({
 // anchor = the cell Step 4 (discovery / checklist) walks to; it is on or adjacent to a path tile.
 // rects are [x0, z0, x1, z1] inclusive; cells are explicit [x, z] pairs.
 export const HANOI_LANDMARKS = Object.freeze({
-  hoankiem: Object.freeze({ anchor: Object.freeze([-1, -2]), rects: Object.freeze([Object.freeze([-3, -2, 1, -1])]), cells: Object.freeze([Object.freeze([2, -1])]) }),
+  hoankiem: Object.freeze({ anchor: Object.freeze([-1, -1]), rects: Object.freeze([Object.freeze([-2, -7, 1, 4])]), cells: Object.freeze([Object.freeze([2, -1]), Object.freeze([2, -3])]) }),
   ngocson: Object.freeze({ anchor: Object.freeze([5, -2]), rects: Object.freeze([]), cells: Object.freeze([Object.freeze([2, -2]), Object.freeze([3, -4]), Object.freeze([3, -3]), Object.freeze([3, -2]), Object.freeze([3, -1]), Object.freeze([4, -2]), Object.freeze([5, -2])]) }),
-  westlake: Object.freeze({ anchor: Object.freeze([-9, -11]), rects: Object.freeze([Object.freeze([-19, -19, -10, -9])]), cells: Object.freeze([Object.freeze([-9, -11]), Object.freeze([-9, -10])]) }),
-  oldquarter: Object.freeze({ anchor: Object.freeze([-6, -6]), rects: Object.freeze([Object.freeze([-8, -9, 2, -3])]), cells: Object.freeze([]) }),
+  westlake: Object.freeze({ anchor: Object.freeze([-9, -11]), rects: Object.freeze([Object.freeze([-19, -19, -7, -6])]), cells: Object.freeze([]) }),
+  tranquoc: Object.freeze({ anchor: Object.freeze([-13, -12]), rects: Object.freeze([]), cells: Object.freeze([Object.freeze([-13, -12]), Object.freeze([-12, -12]), Object.freeze([-11, -12])]) }),
+  oldquarter: Object.freeze({ anchor: Object.freeze([-6, -6]), rects: Object.freeze([Object.freeze([-8, -9, -3, -3])]), cells: Object.freeze([]) }),
   mausoleum: Object.freeze({ anchor: Object.freeze([-12, 3]), rects: Object.freeze([Object.freeze([-14, 3, -11, 7])]), cells: Object.freeze([]) }),
   vanmieu: Object.freeze({ anchor: Object.freeze([-8, 11]), rects: Object.freeze([Object.freeze([-10, 9, -6, 13])]), cells: Object.freeze([]) }),
   onepillar: Object.freeze({ anchor: Object.freeze([-8, 4]), rects: Object.freeze([]), cells: Object.freeze([Object.freeze([-8, 4]), Object.freeze([-7, 4])]) }),

@@ -8,10 +8,15 @@ import { effectiveMaxDpr } from './quality-scaler.js';
 export function createRenderer({ canvas, quality = 'high' }) {
   let q = qualitySettings(quality);
   let qLevel = quality;
+  // Phase 3D-07: continuous dynamic resolution. pixScale multiplies the
+  // level-capped pixel ratio (1.0 = full preset resolution, 0.5 = half).
+  // It only changes through setPixScale, driven by the pixScale loop in
+  // main.js; the scaler (2E) presets are untouched.
+  let pixScale = 1;
   // Phase 2E: the pixel ratio is capped by the level AND by the device -
   // a touch screen never renders above 1.5, even at high (pixel count is
   // the single biggest cost on phones).
-  const cappedDpr = () => Math.min(window.devicePixelRatio || 1, effectiveMaxDpr(qLevel));
+  const cappedDpr = () => Math.min(window.devicePixelRatio || 1, effectiveMaxDpr(qLevel)) * pixScale;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, stencil: false, powerPreference: 'high-performance' });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;
@@ -34,6 +39,15 @@ export function createRenderer({ canvas, quality = 'high' }) {
       renderer.shadowMap.enabled = q.shadows;
       renderer.setPixelRatio(cappedDpr());
     },
+    /** Phase 3D-07: continuous resolution scale, 0.5 to 1.0. The caller
+     * rebuilds the render targets (resize) after changing it. */
+    setPixScale(v) {
+      const n = Number(v);
+      pixScale = Number.isFinite(n) ? Math.min(1, Math.max(0.5, n)) : 1;
+      renderer.setPixelRatio(cappedDpr());
+      return pixScale;
+    },
+    getPixScale() { return pixScale; },
     dispose() { renderer.dispose(); },
   };
 }

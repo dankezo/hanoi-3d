@@ -13,6 +13,7 @@
 import * as THREE from 'three';
 import { CONFIG, TILE_SIZE } from '../core/config.js';
 import { MODELS } from '../core/models.js';
+import { HANOI_MODELS } from '../world/hanoi-models.js';
 import { BIOMES } from '../core/biomes.js';
 
 const NB = BIOMES.length;
@@ -86,7 +87,9 @@ export function groundConfig() { return { ...GROUND_DEFAULTS, ...((CONFIG.book &
  * disc = [u east, v south, radius] in world units (ponds only).
  */
 export function waterKind(id) {
-  const m = MODELS[id];
+  // Phase 3B: Hanoi-only pond models live in HANOI_MODELS, not MODELS; without this
+  // the two lakes get kind 0 (no water mask / reflection). Tags + sockets match MODELS.
+  const m = MODELS[id] || HANOI_MODELS[id];
   if (!m || !m.tags || !m.tags.includes('water')) return { kind: 0, disc: null };
   const W = CONFIG.world || {};
   const pd = W.ponds && W.ponds[id];

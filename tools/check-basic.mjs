@@ -41,7 +41,9 @@ for (const id of Object.keys(EXPECTED)) {
 }
 // 4. Loader wires the basic-grand GLB only off Hanoi mode, and the asset URL exists.
 check(/basicGrandUrl/.test(loaderSrc), 'loader.js references basicGrandUrl');
-check(/!hanoi \? loadGLTF\(A\.basicGrandUrl\)/.test(loaderSrc), 'loader.js loads basic-grand only when NOT Hanoi mode');
+// Phase 3D: the staged GLB job list gates basic-grand on NOT Hanoi (same
+// behaviour as the old '!hanoi ? loadGLTF(...)' line, new shape).
+check(/if \(!hanoi\) glbJobs\.push\(\{ key: 'basicGrand', url: A\.basicGrandUrl/.test(loaderSrc), 'loader.js loads basic-grand only when NOT Hanoi mode');
 const assetsSrc = readFileSync(new URL('../src/core/config/assets.js', import.meta.url), 'utf8');
 check(/basicGrandUrl: '\.\/models\/basic-grand\.glb'/.test(assetsSrc), 'assets.js has basicGrandUrl');
 check(existsSync(new URL('../public/models/basic-grand.glb', import.meta.url)), 'public/models/basic-grand.glb exists');
@@ -72,7 +74,7 @@ for (const [name, rect] of Object.entries(NEW)) {
   }
   check(hits === 0, name + ' overlaps 0 other sprites');
 }
-check(Object.keys(atlas.sprites).length === 200, 'atlas sprites total 200, got ' + Object.keys(atlas.sprites).length);
+check(Object.keys(atlas.sprites).length === 206, 'atlas sprites total 206 (200 + 6 sign texts from the 3A fix round), got ' + Object.keys(atlas.sprites).length);
 
 console.log(fail === 0 ? 'ALL BASIC CHECKS PASSED' : fail + ' CHECK(S) FAILED');
 process.exit(fail === 0 ? 0 : 1);

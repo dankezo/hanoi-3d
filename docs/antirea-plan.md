@@ -11,7 +11,7 @@ Prepared 2026-11-21. Sources: dankezo/antiRea README (main, SHA 2641e42) + skill
 ## What is valuable and copyable in Hanoi 3D
 
 - Hanoi map data: 40x40 grid + landmark positions (src/world/hanoi-map.js, hanoi.js)
-- Landmark history content: docs/landmark-history.md (10 landmarks, EN+VI, fun facts)
+- Landmark history content: docs/landmark-history.md (11 landmarks, EN+VI, fun facts)
 - Art: atlas.webp + atlas.json (194 sprites), public/models/hanoi-tiles.glb (14 nodes)
 - All of it is currently static on GitHub Pages: anyone can download it whole. antiRea cannot run on Pages (no server) and cannot run in the browser.
 

@@ -4,32 +4,57 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import fs from 'node:fs';
 
 const EXPECTED = {
-  hanoi_turtletower: { flaps: 7, art: 'turtletower', rect: [16, 2600, 179, 302] },
+  hanoi_turtletower: { flaps: 14, art: 'turtletower', rect: [16, 2600, 179, 302] },
   hanoi_ngocson: { flaps: 9, art: 'ngocson', rect: [211, 2600, 331, 274] },
-  hanoi_thehuc: { flaps: 6, art: 'thehuc', rect: [558, 2600, 432, 158] },
-  hanoi_tranquoc: { flaps: 10, art: 'tranquoc', rect: [1006, 2600, 202, 374] },
-  hanoi_tubehouse: { flaps: 8, art: 'tubehouse', rect: [1224, 2600, 173, 288] },
-  hanoi_tubehouse_b: { flaps: 7, art: 'tubehouse', rect: [1224, 2600, 173, 288] },
+  hanoi_thehuc: { flaps: 8, art: 'thehuc', rect: [558, 2600, 432, 158] },
+  hanoi_tranquoc: { flaps: 17, art: 'tranquoc', rect: [1006, 2600, 202, 374] },
+  hanoi_tubehouse: { flaps: 10, art: 'tubehouse', rect: [1224, 2600, 173, 288] },
+  hanoi_tubehouse_b: { flaps: 9, art: 'tubehouse', rect: [1224, 2600, 173, 288] },
   hanoi_tubehouse_green: { flaps: 7, art: null },
-  hanoi_mausoleum: { flaps: 10, art: 'mausoleum', rect: [16, 2990, 302, 288] },
-  hanoi_badinh: { flaps: 7, art: null },
+  hanoi_mausoleum: { flaps: 12, art: 'mausoleum', rect: [16, 2990, 302, 288] },
+  hanoi_badinh: { flaps: 10, art: null },
   hanoi_vanmieu: { flaps: 9, art: 'vanmieu', rect: [334, 2990, 331, 302] },
   hanoi_onepillar: { flaps: 7, art: 'onepillar', rect: [681, 2990, 207, 331] },
   hanoi_cathedral: { flaps: 8, art: 'cathedral', rect: [904, 2990, 360, 389] },
   hanoi_opera: { flaps: 10, art: 'opera', rect: [1280, 2990, 360, 259] },
-  hanoi_longbien: { flaps: 7, art: 'longbien', rect: [1656, 2990, 432, 202] },
+  hanoi_longbien: { flaps: 9, art: 'longbien', rect: [1656, 2990, 432, 202] },
   // Phase 2B street elements: flat-colour flaps only, no hero art card.
   hanoi_road: { flaps: 2, art: null },
   hanoi_sidewalk: { flaps: 1, art: null },
-  hanoi_tree: { flaps: 2, art: null },
+  hanoi_tree: { flaps: 5, art: null },
   hanoi_bush: { flaps: 3, art: null },
-  hanoi_trafficlight: { flaps: 3, art: null },
+  hanoi_trafficlight: { flaps: 5, art: null },
   hanoi_police: { flaps: 2, art: null },
   hanoi_pedestrian: { flaps: 3, art: null },
-  hanoi_vendor: { flaps: 3, art: null },
-  hanoi_phostall: { flaps: 4, art: null },
-  hanoi_pole: { flaps: 2, art: null },
-  hanoi_lamp: { flaps: 2, art: null },
+  hanoi_vendor: { flaps: 4, art: null },
+  hanoi_phostall: { flaps: 11, art: 'sign_pho', rect: [2948, 2990, 98, 52] },
+  hanoi_pole: { flaps: 6, art: null },
+  hanoi_lamp: { flaps: 5, art: null },
+  // Phase 3A street elements: flat-colour flaps only, no hero art card - except
+  // the sign boards, which gained a text hero card in the fix round (see below).
+  hanoi_cornerhouse: { flaps: 9, art: 'sign_biaphoco', rect: [2104, 2990, 173, 274] },
+  hanoi_sign_phoco: { flaps: 5, art: 'sign_biaphoco', rect: [2104, 2990, 173, 274] },
+  hanoi_sign_biahoi: { flaps: 5, art: 'sign_biahoi', rect: [2293, 2990, 173, 274] },
+  hanoi_sign_trucbach: { flaps: 5, art: 'sign_trucbach', rect: [2482, 2990, 173, 274] },
+  hanoi_sign_paramount: { flaps: 5, art: 'sign_paramount', rect: [2671, 2990, 173, 274] },
+  hanoi_flag: { flaps: 4, art: null },
+  hanoi_banner: { flaps: 5, art: 'sign_banner304', rect: [2860, 2990, 72, 202] },
+  hanoi_sautree: { flaps: 5, art: null },
+  hanoi_bike_red: { flaps: 4, art: null },
+  hanoi_bike_blue: { flaps: 4, art: null },
+  hanoi_bike_black: { flaps: 4, art: null },
+  hanoi_mural: { flaps: 5, art: null },
+  hanoi_alley: { flaps: 7, art: null },
+  hanoi_vendor_street: { flaps: 4, art: null },
+  hanoi_phostall_street: { flaps: 11, art: 'sign_pho', rect: [2948, 2990, 98, 52] },
+  hanoi_pole_street: { flaps: 6, art: null },
+  // Phase 3B lake models: flat-colour flaps only, no hero art card.
+  hanoi_pond_guom: { flaps: 3, art: null },
+  hanoi_pond_tay: { flaps: 3, art: null },
+  hanoi_lotus: { flaps: 5, art: null },
+  hanoi_stonebridge: { flaps: 5, art: null },
+  hanoi_pentower: { flaps: 7, art: null },
+  hanoi_mausoleum_wing: { flaps: 6, art: null },
 };
 let fail = 0;
 const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ') + msg); if (!ok) fail++; };
@@ -37,7 +62,7 @@ const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ') + msg); if (!o
 const buf = fs.readFileSync('public/models/hanoi-tiles.glb');
 const gltf = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), '');
 const scene = gltf.scene;
-check(scene.children.length === 25, `25 top-level nodes (got ${scene.children.length})`);
+check(scene.children.length === 47, `47 top-level nodes (got ${scene.children.length})`);
 let totalTris = 0;
 let totalDegenerate = 0;
 for (const [id, exp] of Object.entries(EXPECTED)) {
