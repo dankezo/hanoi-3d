@@ -1,13 +1,15 @@
 // Pop-up Atlas composition root.
-// URL params: ?seed=N  ?quality=low|med|high  ?mute=1  ?hint=0  ?night=1  ?life=0  ?animals=0  ?map=hanoi
+// URL params: ?seed=N  ?quality=low|med|high  ?mute=1  ?hint=0  ?night=1  ?life=0  ?animals=0  ?map=hanoi  ?fps=1
 import * as THREE from 'three';
 import { CONFIG, QUALITY, TILE_SIZE } from './core/config.js';
+import { createQualityScaler, createFpsReadout, resolveInitialQuality, readStoredQuality, isTouchDevice } from './render/quality-scaler.js';
 import { bus } from './core/events.js';
 import { state } from './core/state.js';
 import { createLoop } from './core/loop.js';
 import { loadAssets } from './assets/loader.js';
 import { createWFC } from './world/wfc.js';
 import { createHanoi } from './world/hanoi.js';
+import { loadHanoiData, resolveEdgeUrl } from './core/config/edge.js';
 import { createWorld } from './world/world.js';
 import { createTraveller } from './player/traveller.js';
 import { createControls } from './player/controls.js';
@@ -29,7 +31,14 @@ const hypot2 = (a, b) => Math.sqrt(a * a + b * b);
 const params = new URLSearchParams(location.search);
 const seedParam = parseInt(params.get('seed') ?? '', 10);
 const seed = Number.isFinite(seedParam) ? seedParam : CONFIG.DEFAULT_SEED;
-const quality = QUALITY[params.get('quality')] ? params.get('quality') : CONFIG.DEFAULT_QUALITY;
+// Phase 2E: the starting level is resolved, not just defaulted to high.
+// Priority: explicit ?quality= param, then the stored per-device level
+// (hanoi:quality), then phones start at med, desktops at high. The scaler
+// never overrides an explicit ?quality= level.
+const forcedQuality = QUALITY[params.get('quality')] ? params.get('quality') : null;
+const storedQuality = readStoredQuality(typeof localStorage !== 'undefined' ? localStorage : null);
+const quality = resolveInitialQuality({ forced: forcedQuality, stored: storedQuality, touch: isTouchDevice() });
+const showFps = params.get('fps') === '1';
 const muted = params.get('mute') === '1';
 const showHint = params.get('hint') !== '0';
 
@@ -41,13 +50,16 @@ async function boot() {
   const hint = document.getElementById('hint');
 
   const scene = new THREE.Scene();
-  const { renderer, setSize: setRendererSize } = createRenderer({ canvas, quality });
+  const { renderer, setSize: setRendererSize, setQuality: setRendererQuality } = createRenderer({ canvas, quality });
   const materials = createMaterials({ quality });
   const hanoi = params.get('map') === 'hanoi';
+  // Phase 2D: edge dataset when an edge URL is set, else the bundled dataset.
+  // Flag off (the default) = zero network calls, same data objects as before.
+  const hanoiData = hanoi ? await loadHanoiData({ edgeUrl: resolveEdgeUrl(params) }) : null;
   const assets = await loadAssets({ materials, renderer, quality, hanoi });
   materials.setTextures(assets.textures);
   const lights = createLights({ scene, quality });
-  const wfc = hanoi ? createHanoi({ seed }) : createWFC({ seed });
+  const wfc = hanoi ? createHanoi({ seed, data: hanoiData ? hanoiData.map : null }) : createWFC({ seed });
   const world = createWorld({ scene, assets, wfc, materials, quality });
   const traveller = createTraveller({ scene, assets, world, materials, hanoi });
   const follow = createFollowCamera({ aspect: window.innerWidth / Math.max(1, window.innerHeight) });
@@ -62,7 +74,7 @@ async function boot() {
   // living animals (cats, sheep, hens, ducks ...): cut-paper cards on risen tiles, 2 draw calls; ?animals=0 disables them
   const animals = params.get('animals') === '0' || CONFIG.animals.enabled === false ? null : createAnimals({ scene, renderer, world, wfc, traveller, daynight, assets, seed, quality });
   // Gameplay progress is saved independently for each world seed.
-  const game = createGame({ scene, renderer, world, wfc, traveller, follow, controls, lights, post, daynight, music, audio, life, assets, materials, seed, quality, hanoi });
+  const game = createGame({ scene, renderer, world, wfc, traveller, follow, controls, lights, post, daynight, music, audio, life, assets, materials, seed, quality, hanoi, historyInfo: hanoiData ? hanoiData.historyInfo : null });
   follow.setAssistGate(game.modal);
   // N: day / night, M: music on / off (keys only - no on-screen UI)
   window.addEventListener('keydown', (e) => {
@@ -108,6 +120,10 @@ async function boot() {
   }
 
   function render(dt) {
+    // Phase 2E: measure this frame and let the scaler step the quality
+    // down/up. Wrapped defensively: a scaler failure must never stop a frame.
+    try { if (scaler) scaler.tick(dt * 1000); } catch (err) { /* keep rendering at the current quality */ }
+    try { if (fpsReadout && scaler && scaler.emaFps) fpsReadout.update(scaler.emaFps, scaler.level, performance.now()); } catch (err) { /* readout is dev-only */ }
     post.setFocus(follow.focusPoint);
     post.render(dt);
     game.atlasmap.render(); // Drawn over the finished frame; no-op while closed.
@@ -146,6 +162,34 @@ async function boot() {
     }
     return [x, z];
   }
+
+  // ---- Phase 2E: auto quality scaler + dev FPS readout --------------------------------------
+  // Created here, after resize() exists and after the first render targets
+  // are built, and never awaited: boot does not wait for the scaler, and
+  // the scaler never blocks the first frame. Life/animals keep their boot
+  // level (they read quality once at creation); the four render hooks below
+  // carry every step change.
+  let scaler = null;
+  let fpsReadout = null;
+  try {
+    fpsReadout = createFpsReadout({ enabled: showFps });
+    scaler = createQualityScaler({
+      level: quality,
+      forced: forcedQuality !== null,
+      storage: typeof localStorage !== 'undefined' ? localStorage : null,
+      // Dev-only periodic log: silent in normal play, 5 s log only with ?fps=1.
+      logEveryMs: showFps ? 5000 : 0,
+      apply: (next) => {
+        setRendererQuality(next);
+        lights.setQuality(next);
+        materials.setQuality(next);
+        post.setQuality(next);
+        state.quality = next;
+        resize();
+      },
+      onChange: (next, prev, reason) => { state.quality = next; },
+    });
+  } catch (err) { scaler = null; fpsReadout = null; }
 
   // ---- start ------------------------------------------------------------------------------------------
   if (animals) await animals.ready;

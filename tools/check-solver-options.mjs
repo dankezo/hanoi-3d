@@ -49,6 +49,11 @@ const STAND_IN = {
   hanoi_vanmieu: ['manor', 0], hanoi_onepillar: ['blossom_gazebo', 1], hanoi_cathedral: ['church', 0],
   hanoi_opera: ['manor', 0], hanoi_longbien: ['bridge', 1],
   hanoi_tubehouse: ['village', 0], hanoi_tubehouse_b: ['village_b', 0], hanoi_tubehouse_green: ['village_green', 0],
+  // Phase 2B street elements: each copies the sockets + tags of the cell it replaces.
+  hanoi_road: ['path_cross', 0], hanoi_sidewalk: ['meadow', 0], hanoi_tree: ['meadow', 0],
+  hanoi_bush: ['meadow', 0], hanoi_trafficlight: ['path_end', 2], hanoi_police: ['village_green', 1],
+  hanoi_pedestrian: ['village', 1], hanoi_vendor: ['meadow', 0], hanoi_phostall: ['meadow', 0],
+  hanoi_pole: ['meadow', 0], hanoi_lamp: ['meadow', 0],
 };
 for (const [id, [standIn, rot]] of Object.entries(STAND_IN)) {
   const a = hanoiSocketsOf(id, rot);
@@ -56,7 +61,18 @@ for (const [id, [standIn, rot]] of Object.entries(STAND_IN)) {
   check(JSON.stringify(a) === JSON.stringify(b), id + ' sockets rot ' + rot + ' match ' + standIn + ': ' + JSON.stringify(a));
   const t = getHanoiTile(id);
   const st = getTile(standIn);
-  check(JSON.stringify(t.tags) === JSON.stringify(st.tags), id + ' tags match ' + standIn + ': ' + JSON.stringify(t.tags));
+  // Phase 2B: some street models intentionally differ from their meadow stand-in (tags
+  // ['open'] would be wrong for a stall or a lamp). 'open' is only vocabulary - no code
+  // reads it - and none of these carry 'house', 'water' or 'blocker', so walkability and
+  // the book bake behave exactly like the meadow they replace. hanoi_pedestrian drops
+  // 'house' + 'blocker' from village so the main street stays walkable.
+  const EXPECTED_TAGS = {
+    hanoi_sidewalk: [], hanoi_tree: [], hanoi_bush: [],
+    hanoi_vendor: ['village'], hanoi_phostall: ['village'], hanoi_pole: ['village'], hanoi_lamp: ['village'],
+    hanoi_pedestrian: ['path', 'village'],
+  };
+  const wantTags = EXPECTED_TAGS[id] || st.tags;
+  check(JSON.stringify(t.tags) === JSON.stringify(wantTags), id + ' tags match ' + standIn + ': ' + JSON.stringify(t.tags));
 }
 const ANCHOR_MODEL = {
   hoankiem: 'hanoi_turtletower', ngocson: 'hanoi_ngocson', westlake: 'hanoi_tranquoc',
@@ -73,7 +89,8 @@ for (const [lm, model] of Object.entries(ANCHOR_MODEL)) {
 check(hanoi.get(18, -6).tileId === 'hanoi_longbien', 'longbien second cell (18,-6) is hanoi_longbien');
 check(hanoi.get(3, -2).tileId === 'hanoi_thehuc', 'thehuc cell (3,-2) is hanoi_thehuc');
 check(hanoi.get(-12, 5).tileId === 'hanoi_badinh', 'badinh cell (-12,5) is hanoi_badinh');
-// Old Quarter street cells all use the tubehouse family now (no stock village ids left in the rect).
+// Old Quarter street cells: 19 tubehouse cells in step 3, minus 4 replaced by Phase 2B
+// street elements (1 police + 3 pedestrians on the z = -6 main street).
 let stockVillage = 0;
 let tubeCells = 0;
 for (let z = -9; z <= -3; z++) {
@@ -84,8 +101,31 @@ for (let z = -9; z <= -3; z++) {
   }
 }
 check(stockVillage === 0, 'no stock village ids left in oldquarter rect, got ' + stockVillage);
-check(tubeCells === 19, 'oldquarter tubehouse cells: ' + tubeCells + ' (was 19 village cells)');
-check(HANOI_MODEL_IDS.length === 14, 'Hanoi-only models: ' + HANOI_MODEL_IDS.length);
+check(tubeCells === 15, 'oldquarter tubehouse cells: ' + tubeCells + ' (19 minus 4 street elements)');
+check(HANOI_MODEL_IDS.length === 25, 'Hanoi-only models: ' + HANOI_MODEL_IDS.length);
+// Phase 2B: all 30 street-element cells resolve to their model at the planned coords.
+const STREET_CELLS = {
+  hanoi_road: [[-6, -6], [-3, -6]],
+  hanoi_sidewalk: [[-7, -7], [-5, -7], [-2, -7], [0, -7], [-7, -5], [-2, -5]],
+  hanoi_tree: [[-8, -9], [-4, -9], [1, -9], [-8, -4]],
+  hanoi_bush: [[-7, -9], [-5, -9], [-2, -9], [0, -9], [2, -9]],
+  hanoi_trafficlight: [[-6, -3], [-3, -3]],
+  hanoi_police: [[-1, -6]],
+  hanoi_pedestrian: [[-7, -6], [-4, -6], [1, -6]],
+  hanoi_vendor: [[-8, -5]],
+  hanoi_phostall: [[2, -5]],
+  hanoi_pole: [[-8, -8], [2, -8]],
+  hanoi_lamp: [[-5, -5], [1, -5], [-4, -7]],
+};
+let streetCells = 0;
+for (const [model, cells] of Object.entries(STREET_CELLS)) {
+  for (const [x, z] of cells) {
+    streetCells++;
+    const c = hanoi.get(x, z);
+    check(c.tileId === model, model + ' at (' + x + ',' + z + '), got ' + c.tileId);
+  }
+}
+check(streetCells === 30, 'street-element cells: ' + streetCells + ' (expected 30)');
 // No legend id silently falls back to meadow: every cell tileId resolves in one of the two registries.
 let unresolved = 0;
 for (let z = -20; z <= 19; z++) {

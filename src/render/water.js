@@ -430,10 +430,15 @@ const QRANK = { low: 0, med: 1, high: 2 };
  * camera mirrored about the page plane y = 0 into a small HDR target, ONLY while an inked water cell is inside the
  * view frustum. No shadow-map re-render (the previous frame's maps are sampled), no MSAA, page / table / soft
  * particles hidden. Call right before the main scene render. `quality` = 'low' | 'med' | 'high'.
+ * Phase 2E: `opts.scale` overrides the mirror target scale (low = 0.33), and
+ * the caller may SKIP a frame entirely - the reflection texture and the
+ * uRefl strength from the previous drawn frame stay in place, so a skipped
+ * frame keeps showing the last mirror image instead of going blank.
  */
-export function renderReflection(renderer, scene, camera, width, height, quality = 'high') {
+export function renderReflection(renderer, scene, camera, width, height, quality = 'high', opts = {}) {
   const w = waterConfig();
   const m = { ...WATER_DEFAULTS.mirror, ...(w.mirror || {}) };
+  if (typeof opts.scale === 'number' && opts.scale > 0) m.scale = opts.scale;
   const U = REFLECT.uniforms;
   REFLECT.active = false; REFLECT.calls = 0;
   U.uRefl.value.x = 0;

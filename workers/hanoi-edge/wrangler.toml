@@ -1,0 +1,10 @@
+# Hanoi 3D edge API - Cloudflare Worker
+# Deploy from your own Cloudflare account (see README.md). No secrets here.
+name = "hanoi-edge"
+main = "src/index.js"
+compatibility_date = "2026-11-21"
+
+# No KV, no D1, no R2: all meter state is in-memory per isolate (see README).
+# Optional secret (set with `wrangler secret put ANTIREA_WATERMARK_KEY`):
+# the key for the keyed value watermark. Without it the Worker still runs
+# and the static marker still applies.

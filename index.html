@@ -35,6 +35,13 @@
         pointer-events: none; user-select: none; opacity: 0; transition: opacity 1.4s ease;
       }
       #hint.on { opacity: 1; }
+      /* Phase 2E dev readout (?fps=1 only, off by default): bottom-left, the free corner. */
+      #fps-readout {
+        position: fixed; left: 12px; bottom: 12px; z-index: 8; padding: 3px 7px;
+        background: rgba(20, 10, 0, 0.72); color: #f2eee4; border-radius: 3px;
+        font: 600 11px/1.4 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em;
+        pointer-events: none; user-select: none;
+      }
       /* Landmarks (Hanoi mode only): hidden until body.hanoi. Paper card, ink text, minimal. */
       #lm-list, #lm-toast, #lm-map { display: none; }
       body.hanoi #lm-list {
@@ -73,16 +80,82 @@
         border: 1px solid rgba(90, 58, 40, 0.5); border-radius: 3px;
         box-shadow: 0 2px 10px rgba(20, 10, 0, 0.35); background: rgba(239, 224, 194, 0.92); pointer-events: none;
       }
+      /* Language toggle (Phase 2C, Hanoi mode only): top-right, the empty corner -
+         checklist is top-left, minimap bottom-right. Same paper as the checklist. */
+      #lm-lang, #lm-privacy { display: none; }
+      body.hanoi #lm-lang {
+        display: block; position: fixed; top: 12px; right: 12px; z-index: 5;
+        padding: 7px 10px; background: rgba(239, 224, 194, 0.94);
+        border: 1px solid rgba(90, 58, 40, 0.5); border-radius: 3px;
+        box-shadow: 0 2px 10px rgba(20, 10, 0, 0.35); color: #5a3a28;
+        font: 600 12px/1.2 Georgia, 'Times New Roman', serif; letter-spacing: 0.08em; cursor: pointer;
+      }
+      #lm-lang span.on { color: #b9603f; text-decoration: underline; }
+      #lm-lang .lm-sep { opacity: 0.5; margin: 0 2px; }
+      body.hanoi #lm-privacy {
+        display: block; padding: 5px 10px 7px; border-top: 1px solid rgba(90, 58, 40, 0.25);
+        font-size: 10px; line-height: 1.35; opacity: 0.7;
+      }
+      /* Landmark info card (Phase 2B, Hanoi mode only): same paper as the checklist.
+         Sits above the toast, fits a 390px phone, scrolls inside itself, never scrolls the page.
+         Walking is not blocked: keyboard walking works while it is open, taps outside it still
+         walk, and it closes itself when the traveller walks away. */
+      #lm-info { display: none; }
+      body.hanoi #lm-info.show {
+        display: block; position: fixed; left: 50%; bottom: 21vh; z-index: 7;
+        width: calc(100vw - 24px); max-width: 360px; max-height: 52vh;
+        transform: translateX(-50%);
+        background: rgba(239, 224, 194, 0.97); border: 1px solid rgba(90, 58, 40, 0.5); border-radius: 3px;
+        box-shadow: 0 2px 14px rgba(20, 10, 0, 0.4); color: #5a3a28;
+        font-family: Georgia, 'Times New Roman', serif;
+      }
+      #lm-info-head {
+        display: flex; align-items: baseline; gap: 8px; padding: 8px 10px; cursor: pointer;
+        border-bottom: 1px solid rgba(90, 58, 40, 0.25);
+      }
+      #lm-info-title-vi { font-size: 14px; font-weight: 700; letter-spacing: 0.03em; }
+      #lm-info-title-en { font-size: 12px; font-style: italic; opacity: 0.75; flex: 1; }
+      #lm-info-x {
+        flex: none; width: 22px; height: 22px; padding: 0; background: none; border: 1px solid rgba(90, 58, 40, 0.5);
+        border-radius: 3px; color: #5a3a28; font: 700 13px/1 Georgia, 'Times New Roman', serif; cursor: pointer;
+      }
+      #lm-info.collapsed #lm-info-body { display: none; }
+      #lm-info.collapsed #lm-info-head { border-bottom: 0; }
+      #lm-info-body { padding: 8px 12px 10px; overflow-y: auto; max-height: calc(52vh - 39px); font-size: 12.5px; line-height: 1.5; }
+      #lm-info-body h3 {
+        margin: 8px 0 3px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #b9603f;
+      }
+      #lm-info-body h3:first-child { margin-top: 0; }
+      #lm-info-body ul { margin: 0; padding-left: 16px; }
+      #lm-info-body li { margin: 2px 0; }
+      #lm-info-body p { margin: 0; }
+      #lm-info-src { display: inline-block; margin-top: 8px; color: #3f7f84; font-size: 12px; }
     </style>
   </head>
   <body>
     <canvas id="atlas" tabindex="0"></canvas>
     <div id="hint">WASD / click to walk &nbsp;·&nbsp; Shift run &nbsp;·&nbsp; Ctrl slow &nbsp;·&nbsp; Tab map &nbsp;·&nbsp; N night &nbsp;·&nbsp; M music &nbsp;·&nbsp; V view</div>
     <div id="lm-list">
-      <button id="lm-head" type="button"><span>Hanoi</span><b id="lm-count">0/10</b><span id="lm-caret">-</span></button>
+      <button id="lm-head" type="button"><span id="lm-title">Hanoi</span><b id="lm-count">0/10</b><span id="lm-caret">-</span></button>
       <ul id="lm-items"></ul>
+      <div id="lm-privacy">Ngon ngu doan theo IP, chi ma quoc gia.</div>
     </div>
+    <button id="lm-lang" type="button" aria-label="Switch language: Vietnamese / English"><span id="lm-lang-vi">VI</span><span class="lm-sep">|</span><span id="lm-lang-en">EN</span></button>
     <div id="lm-toast" role="status" aria-live="polite"></div>
+    <div id="lm-info" role="dialog" aria-label="Landmark info">
+      <div id="lm-info-head"><span id="lm-info-title-vi"></span><span id="lm-info-title-en"></span><button id="lm-info-x" type="button" aria-label="Close">x</button></div>
+      <div id="lm-info-body">
+        <h3 id="lm-info-hist-h-vi">Lich su</h3>
+        <ul id="lm-info-hist-vi"></ul>
+        <h3 id="lm-info-hist-h-en">History</h3>
+        <ul id="lm-info-hist-en"></ul>
+        <h3 id="lm-info-fun-h-vi">Dieu thu vi</h3>
+        <p id="lm-info-fun-vi"></p>
+        <h3 id="lm-info-fun-h-en">Fun fact</h3>
+        <p id="lm-info-fun-en"></p>
+        <a id="lm-info-src" href="" target="_blank" rel="noopener"></a>
+      </div>
+    </div>
     <canvas id="lm-map" width="160" height="160" aria-label="Mini map"></canvas>
     <script type="module" src="/src/main.js"></script>
   </body>

@@ -27,13 +27,20 @@ const sane = (v) => {
 
 const inGrid = (x, z) => x >= HANOI_MIN && x <= MAX && z >= HANOI_MIN && z <= MAX;
 
-export function createHanoi({ seed = 1 } = {}) {
+export function createHanoi({ seed = 1, data = null } = {}) {
   seed = (Number(seed) || 0) | 0;
+  // Phase 2D: an optional edge dataset override, same shape as the bundled
+  // modules ({ rows, legend, landmarks }). Null = the bundled dataset, the
+  // exact path as before. The override is validated by the edge client
+  // (src/core/config/edge.js) before it gets here.
+  const rows = data && Array.isArray(data.rows) ? data.rows : HANOI_ROWS;
+  const legend = data && data.legend ? data.legend : HANOI_LEGEND;
+  const landmarkAreas = data && data.landmarks ? data.landmarks : HANOI_LANDMARKS;
   const stats = { chunks: 1, attempts: 0, backtracks: 0, restarts: 0, strictChunks: 0, fallbackChunks: 0, planFails: 0, validateFails: 0, evicted: 0 };
 
   // landmarkId lookup: "x,z" -> id (a cell belongs to at most one landmark area)
   const landmarkOf = new Map();
-  for (const [id, lm] of Object.entries(HANOI_LANDMARKS)) {
+  for (const [id, lm] of Object.entries(landmarkAreas)) {
     for (const [x0, z0, x1, z1] of lm.rects) {
       for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) landmarkOf.set(x + ',' + z, id);
     }
@@ -43,9 +50,9 @@ export function createHanoi({ seed = 1 } = {}) {
   // Precompute all 1600 frozen cell records once at creation.
   const cells = new Array(HANOI_SIZE * HANOI_SIZE);
   for (let z = HANOI_MIN; z <= MAX; z++) {
-    const row = HANOI_ROWS[z + HANOI_OFFSET];
+    const row = rows[z + HANOI_OFFSET];
     for (let x = HANOI_MIN; x <= MAX; x++) {
-      const spec = HANOI_LEGEND[row[x + HANOI_OFFSET]] || HANOI_LEGEND['.'];
+      const spec = legend[row[x + HANOI_OFFSET]] || legend['.'];
       // Step 3: landmark anchors use Hanoi-only models (src/world/hanoi-models.js), never MODELS,
       // so the WFC solver option count stays at 95; every other cell uses the stock catalogue.
       const ht = getHanoiTile(spec.tileId);

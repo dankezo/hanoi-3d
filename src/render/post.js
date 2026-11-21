@@ -14,6 +14,7 @@
 import { setColorCached } from './colorcache.js';
 import * as THREE from 'three';
 import { renderReflection } from './water.js';
+import { shouldRenderReflection, reflectionScale } from './quality-scaler.js';
 import { CONFIG, qualitySettings } from '../core/config.js';
 import { state } from '../core/state.js';
 // integration: V8's Math.hypot allocates (rest-argument array) on every call; this 2-argument form is allocation-free.
@@ -440,6 +441,7 @@ export function createPost({ renderer, scene, camera, quality = 'high' }) {
   let q = qualitySettings(quality);
   let qLevel = quality;
   let focus = null;
+  let frameNo = 0;
   let width = 2;
   let height = 2;
   const canFloat = renderer.capabilities.isWebGL2 !== false && (renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float'));
@@ -632,8 +634,15 @@ export function createPost({ renderer, scene, camera, quality = 'high' }) {
       const prevAuto = renderer.autoClear;
       renderer.autoClear = true;
 
-      // water (shortfall pass): planar mirror pass for the page's water; a no-op unless inked water is in view
-      renderReflection(renderer, scene, camera, width, height, qLevel);
+      // water (shortfall pass): planar mirror pass for the page's water; a no-op unless inked water is in view.
+      // Phase 2E throttle: med runs it every 2nd frame, low every 3rd at 0.33x
+      // scale. A skipped frame keeps the previous mirror texture and strength
+      // (renderReflection only clears uRefl when it is actually called), so
+      // the lakes never go blank - they just update less often.
+      frameNo++;
+      if (shouldRenderReflection(frameNo, qLevel)) {
+        renderReflection(renderer, scene, camera, width, height, qLevel, { scale: reflectionScale(qLevel) });
+      }
       renderer.autoClear = true;
       renderer.setRenderTarget(T.scene);
       renderer.render(scene, camera);

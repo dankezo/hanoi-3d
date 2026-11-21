@@ -3,6 +3,8 @@ export const assets = {
   tilesUrl: './models/tiles.glb',
   /** Hanoi-only landmark tiles (Step 5, built by tools/step5/build-hanoi-glb.mjs). Optional: missing -> placeholders. */
   hanoiTilesUrl: './models/hanoi-tiles.glb',
+  /** Grand Basic buildings (Phase 2A, built by tools/step5/build-basic-glb.mjs). Optional: missing -> tiles.glb version. */
+  basicGrandUrl: './models/basic-grand.glb',
   travellerUrl: './models/traveller.glb',
   /** Per-tile numbers written by the Blender build (flaps, triangles, layers, bridge deck profile). Optional. */
   metaUrl: './models/assets_meta.json',

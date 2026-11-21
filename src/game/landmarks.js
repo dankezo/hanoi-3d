@@ -4,22 +4,19 @@
 // static Hanoi page (?map=hanoi). In the WFC world this module is never created, so none of its
 // DOM shows: index.html keeps #lm-list, #lm-toast and #lm-map hidden unless body.hanoi.
 //
-// Discovery: every tick, when the traveller's cell changes (same cell-change condition as the
-// progress.explore hook in game/index.js), the 3x3 neighbourhood of the cell is checked against
-// the landmark areas (the wfc cell landmarkId) and every anchor is checked within radius 1
-// (Chebyshev). Radius 1 matters: onepillar, cathedral and opera tag only their single blocker
-// anchor cell, so standing ON them is impossible - only an adjacent cell can trigger. The
-// neighbourhood check also covers walking deep inside a large area (West Lake, Old Quarter)
-// far from its anchor.
-//
-// First entry is recorded in a store of its own, localStorage `hanoi:v1:<seed>` with a `visited`
-// section, and emits `game:landmark` { id, nameEN, nameVI, count }. The upstream save
-// (`popup-atlas:v1:<seed>`) is never read or written here, and the stale upstream `landmarks`
-// section is never reused.
+// Phase 2B adds the proximity info card (#lm-info): when the traveller comes within radius 1
+// of a landmark it opens with that landmark's history (docs/landmark-history.md, copied exact
+// in src/game/landmark-history.js). Tapping a discovered checklist item re-opens its card.
+// The card never blocks walking: keyboard walking works while it is open, it closes itself
+// when the traveller walks away (same radius-1 test as discovery), and the X button closes it.
+// Phase 2C: the active language comes first everywhere; detection (country.is, VI
+// default) and the manual VI | EN toggle live in src/game/i18n.js.
 // No long dashes in this file: only short hyphens (-).
 import { TILE_SIZE } from '../core/config.js';
 import { bus } from '../core/events.js';
 import { HANOI_LANDMARKS } from '../world/hanoi-map.js';
+import { landmarkInfo } from './landmark-history.js';
+import { createLanguage, STRINGS } from './i18n.js';
 
 const STORE_PREFIX = 'hanoi:v1:';
 const RADIUS = 1; // cells (Chebyshev): the traveller's cell plus its 8 neighbours
@@ -96,8 +93,30 @@ export function createLandmarks(ctx) {
   // ---- DOM (elements live in index.html; hidden unless body.hanoi) ------------------------------------
   let listEl = null; let itemsEl = null; let countEl = null; let toastEl = null;
   let toastTitle = null; let toastSub = null; let toastTimer = 0;
+  let lastToastDef = null; // landmark of the toast now showing, so a language switch can re-word it
   let mapEl = null; let mapCtx = null;
+  let infoEl = null; let infoHead = null; let infoX = null;
+  let infoTitleVI = null; let infoTitleEN = null;
+  let infoHistVI = null; let infoHistEN = null;
+  let infoFunVI = null; let infoFunEN = null; let infoSrc = null;
+  let infoBody = null;
+  let infoHistHVI = null; let infoHistHEN = null;
+  let infoFunHVI = null; let infoFunHEN = null;
+  let infoOpen = null; // id of the landmark whose info card is open, or null
+  let titleEl = null; let privacyEl = null; let hintEl = null;
+  let toggleEl = null; let toggleVI = null; let toggleEN = null;
   const itemEls = {};
+  // Language state (Phase 2C). Initial language is the stored choice, else the cached
+  // country, else VI. onChange re-renders every visible string. detect() below is
+  // fire-and-forget: boot never awaits it, and the UI is already rendered in VI.
+  // Test / embed hooks: ctx may carry storage, fetchImpl and navigatorLanguage
+  // (createGame never passes them; the browser path always uses the globals).
+  const lang = createLanguage({
+    storage: ctx.storage ?? (typeof localStorage !== 'undefined' ? localStorage : null),
+    navigatorLanguage: ctx.navigatorLanguage ?? (typeof navigator !== 'undefined' ? navigator.language : ''),
+    fetchImpl: ctx.fetchImpl ?? (typeof fetch === 'function' ? fetch : null),
+    onChange: () => renderAllStrings(),
+  });
   if (!headless) {
     document.body.classList.add('hanoi');
     listEl = document.getElementById('lm-list');
@@ -105,6 +124,30 @@ export function createLandmarks(ctx) {
     countEl = document.getElementById('lm-count');
     toastEl = document.getElementById('lm-toast');
     mapEl = document.getElementById('lm-map');
+    infoEl = document.getElementById('lm-info');
+    infoHead = document.getElementById('lm-info-head');
+    infoX = document.getElementById('lm-info-x');
+    infoTitleVI = document.getElementById('lm-info-title-vi');
+    infoTitleEN = document.getElementById('lm-info-title-en');
+    infoHistVI = document.getElementById('lm-info-hist-vi');
+    infoHistEN = document.getElementById('lm-info-hist-en');
+    infoFunVI = document.getElementById('lm-info-fun-vi');
+    infoFunEN = document.getElementById('lm-info-fun-en');
+    infoSrc = document.getElementById('lm-info-src');
+    infoBody = document.getElementById('lm-info-body');
+    infoHistHVI = document.getElementById('lm-info-hist-h-vi');
+    infoHistHEN = document.getElementById('lm-info-hist-h-en');
+    infoFunHVI = document.getElementById('lm-info-fun-h-vi');
+    infoFunHEN = document.getElementById('lm-info-fun-h-en');
+    titleEl = document.getElementById('lm-title');
+    privacyEl = document.getElementById('lm-privacy');
+    hintEl = document.getElementById('hint');
+    toggleEl = document.getElementById('lm-lang');
+    toggleVI = document.getElementById('lm-lang-vi');
+    toggleEN = document.getElementById('lm-lang-en');
+    if (toggleEl) {
+      toggleEl.addEventListener('click', () => lang.toggle());
+    }
     if (toastEl) {
       toastTitle = document.createElement('b');
       toastSub = document.createElement('span');
@@ -120,14 +163,24 @@ export function createLandmarks(ctx) {
         mk.textContent = '\u00b7';
         const tx = document.createElement('span');
         tx.className = 'tx';
-        tx.textContent = def.nameEN + ' ';
-        const vi = document.createElement('i');
-        vi.textContent = def.nameVI;
-        tx.appendChild(vi);
+        // Two name slots: the active language first (plain), the other second (italic).
+        // renderNames() below fills them on every language switch.
+        const main = document.createTextNode('');
+        const other = document.createElement('i');
+        tx.append(main, other);
         li.append(mk, tx);
+        // Phase 2B: tap a discovered item to re-open its info card (undiscovered: nothing).
+        li.addEventListener('click', () => { if (seen[def.id]) showInfo(def.id); });
+        li.style.cursor = 'pointer';
         itemsEl.appendChild(li);
-        itemEls[def.id] = { li, mk };
+        itemEls[def.id] = { li, mk, main, other };
       }
+    }
+    if (infoHead && infoEl) {
+      infoHead.addEventListener('click', () => infoEl.classList.toggle('collapsed'));
+    }
+    if (infoX) {
+      infoX.addEventListener('click', (ev) => { ev.stopPropagation(); hideInfo(); });
     }
     const head = document.getElementById('lm-head');
     if (head && listEl) head.addEventListener('click', () => {
@@ -137,7 +190,97 @@ export function createLandmarks(ctx) {
     });
   }
 
+  // ---- info card (Phase 2B) ---------------------------------------------------------------------------
+  // Phase 2D: the history lookup may come from the edge API (ctx.historyInfo)
+  // instead of the bundled dataset. Same contract as landmarkInfo(id).
+  const infoFor = ctx.historyInfo || landmarkInfo;
+  function fillList(ul, lines) {
+    if (!ul) return;
+    while (ul.firstChild) ul.removeChild(ul.firstChild);
+    for (const line of lines) {
+      const li = document.createElement('li');
+      li.textContent = line;
+      ul.appendChild(li);
+    }
+  }
+  function showInfo(id, expand = true) {
+    const info = infoFor(id);
+    if (!info || !infoEl) return;
+    infoOpen = id;
+    // Active language first (big title + first sections), the other language second.
+    // Both languages stay reachable in the card; nothing is hidden by the switch.
+    const activeVI = lang.lang === 'vi';
+    const nameMain = activeVI ? info.nameVI : info.nameEN;
+    const nameOther = activeVI ? info.nameEN : info.nameVI;
+    if (infoTitleVI) infoTitleVI.textContent = nameMain;
+    if (infoTitleEN) infoTitleEN.textContent = nameOther;
+    fillList(infoHistVI, info.histVI);
+    fillList(infoHistEN, info.histEN);
+    if (infoFunVI) infoFunVI.textContent = info.funVI;
+    if (infoFunEN) infoFunEN.textContent = info.funEN;
+    // Headings keep their own language's wording; only the section order swaps.
+    if (infoHistHVI) infoHistHVI.textContent = STRINGS.vi.histHeading;
+    if (infoHistHEN) infoHistHEN.textContent = STRINGS.en.histHeading;
+    if (infoFunHVI) infoFunHVI.textContent = STRINGS.vi.funHeading;
+    if (infoFunHEN) infoFunHEN.textContent = STRINGS.en.funHeading;
+    // Reorder the sections so the active language reads first. appendChild moves a
+    // node that is already in the body; the source link stays last.
+    if (infoBody) {
+      const histH = activeVI ? infoHistHVI : infoHistHEN;
+      const histUl = activeVI ? infoHistVI : infoHistEN;
+      const funH = activeVI ? infoFunHVI : infoFunHEN;
+      const funP = activeVI ? infoFunVI : infoFunEN;
+      const histH2 = activeVI ? infoHistHEN : infoHistHVI;
+      const histUl2 = activeVI ? infoHistEN : infoHistVI;
+      const funH2 = activeVI ? infoFunHEN : infoFunHVI;
+      const funP2 = activeVI ? infoFunEN : infoFunVI;
+      for (const n of [histH, histUl, funH, funP, histH2, histUl2, funH2, funP2]) {
+        if (n) infoBody.appendChild(n);
+      }
+      if (infoSrc) infoBody.appendChild(infoSrc);
+    }
+    if (infoSrc) {
+      infoSrc.href = info.source;
+      let host = info.source;
+      try { host = new URL(info.source).hostname; } catch { /* keep the raw URL */ }
+      infoSrc.textContent = lang.t('sourceLabel', { host });
+    }
+    // A language re-render (expand false) must keep the collapsed state: only a
+    // fresh open (discovery, checklist tap) expands the card body.
+    if (expand) infoEl.classList.remove('collapsed');
+    infoEl.classList.add('show');
+  }
+  function hideInfo() {
+    infoOpen = null;
+    if (infoEl) infoEl.classList.remove('show');
+  }
+  /** True when the traveller's cell is within radius 1 of this landmark (same test as discovery). */
+  function nearLandmark(id, cx, cz) {
+    const def = BY_ID[id];
+    if (!def) return false;
+    if (Math.abs(def.cell[0] - cx) <= def.radius && Math.abs(def.cell[1] - cz) <= def.radius) return true;
+    if (!wfc || typeof wfc.get !== 'function') return false;
+    for (let oz = -1; oz <= 1; oz++) {
+      for (let ox = -1; ox <= 1; ox++) {
+        let c = null;
+        try { c = wfc.get(cx + ox, cz + oz); } catch { c = null; }
+        if (c && c.landmarkId === id) return true;
+      }
+    }
+    return false;
+  }
+
   function count() { let n = 0; for (const d of LANDMARKS) if (seen[d.id]) n++; return n; }
+  /** Checklist names in the active language first, the other language second. */
+  function renderNames() {
+    const activeVI = lang.lang === 'vi';
+    for (const d of LANDMARKS) {
+      const e = itemEls[d.id];
+      if (!e) continue;
+      if (e.main) e.main.textContent = (activeVI ? d.nameVI : d.nameEN) + ' ';
+      if (e.other) e.other.textContent = activeVI ? d.nameEN : d.nameVI;
+    }
+  }
   function renderList() {
     if (countEl) countEl.textContent = count() + '/' + LANDMARKS.length;
     for (const d of LANDMARKS) {
@@ -147,14 +290,33 @@ export function createLandmarks(ctx) {
       e.li.classList.toggle('done', done);
       e.mk.textContent = done ? '\u2713' : '\u00b7';
     }
+    renderNames();
   }
-  function showToast(def) {
+  /** Re-render every visible UI string in the active language (toggle + detection). */
+  function renderAllStrings() {
+    if (titleEl) titleEl.textContent = lang.t('checklistTitle');
+    if (privacyEl) privacyEl.textContent = lang.t('privacy');
+    if (hintEl) hintEl.textContent = lang.t('hint');
+    if (toggleEl) toggleEl.setAttribute('aria-label', lang.t('toggleLabel'));
+    if (toggleVI) toggleVI.classList.toggle('on', lang.lang === 'vi');
+    if (toggleEN) toggleEN.classList.toggle('on', lang.lang === 'en');
+    if (infoX) infoX.setAttribute('aria-label', lang.t('closeLabel'));
+    renderList();
+    if (lastToastDef && toastEl && toastEl.classList.contains('show')) showToast(lastToastDef, true);
+    if (infoOpen) showInfo(infoOpen, false); // re-render only, keep collapsed state
+  }
+  function showToast(def, keepTimer = false) {
     if (!toastEl) return;
-    toastTitle.textContent = 'Discovered: ' + def.nameEN;
-    toastSub.textContent = 'Da kham pha: ' + def.nameVI;
+    const activeVI = lang.lang === 'vi';
+    const nameMain = activeVI ? def.nameVI : def.nameEN;
+    const nameOther = activeVI ? def.nameEN : def.nameVI;
+    toastTitle.textContent = lang.t('discovered', { name: nameMain });
+    toastSub.textContent = nameOther;
+    lastToastDef = def;
     toastEl.classList.add('show');
+    if (keepTimer) return;
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove('show'), TOAST_MS);
+    toastTimer = setTimeout(() => { toastEl.classList.remove('show'); lastToastDef = null; }, TOAST_MS);
   }
 
   // ---- minimap: explored patchwork + landmark dots + traveller pin --------------------------------------
@@ -208,6 +370,7 @@ export function createLandmarks(ctx) {
     renderList();
     drawMinimap();
     showToast(def);
+    showInfo(def.id);
     bus.emit('game:landmark', { id: def.id, nameEN: def.nameEN, nameVI: def.nameVI, count: count() });
     return true;
   }
@@ -243,6 +406,12 @@ export function createLandmarks(ctx) {
 
   renderList();
   drawMinimap();
+  renderAllStrings(); // first paint of toggle / privacy / hint in the fallback language
+
+  // Phase 2C: start the IP lookup WITHOUT waiting for it. The UI above is already
+  // rendered in the fallback language; when the lookup returns, onChange re-renders
+  // every string. Boot never waits for this: nothing on the detection path blocks.
+  lang.detect();
 
   return {
     update(dt) {
@@ -254,13 +423,17 @@ export function createLandmarks(ctx) {
         // armed: no discovery before his first steps (same guard as the lanterns)
         if (ctx.game && ctx.game.armed !== false) checkCell(cx, cz);
       }
+      // Phase 2B: the info card closes itself when the traveller walks out of radius 1.
+      if (infoOpen && !nearLandmark(infoOpen, cx, cz)) hideInfo();
       acc += dt;
       if (acc >= MAP_REDRAW_S) { acc = 0; drawMinimap(); }
     },
     /** Finish the toast at once and refresh the list + map (captures). */
     settle() {
       if (toastTimer) { clearTimeout(toastTimer); toastTimer = 0; }
+      lastToastDef = null;
       if (toastEl) toastEl.classList.remove('show');
+      hideInfo();
       renderList();
       drawMinimap();
     },
@@ -283,6 +456,20 @@ export function createLandmarks(ctx) {
     list() { return LANDMARKS.map((d) => ({ ...d, visited: !!seen[d.id] })); },
     /** Debug: force-discover one landmark by id. @returns true if it was new */
     debugDiscover(id) { const def = BY_ID[id]; return def ? discover(def) : false; },
+    /** Open the info card for a discovered landmark (checklist tap). No-op when not visited. */
+    openInfo(id) { if (seen[id]) showInfo(id); },
+    /** Close the info card, if open. */
+    closeInfo() { hideInfo(); },
+    /** Id of the landmark whose info card is open, or null. */
+    infoOpen() { return infoOpen; },
+    /** Active language ('vi' | 'en'). */
+    lang() { return lang.lang; },
+    /** Manual language switch (persists, overrides detection). */
+    setLang(next) { return lang.setLang(next, { manual: true }); },
+    /** Re-run the IP lookup (no-op after the first run in this session). */
+    detectLang() { return lang.detect(); },
+    /** True when the traveller's cell is within radius 1 of this landmark. */
+    nearLandmark,
     /** The localStorage key this store uses. */
     storeKey: KEY,
     defs: LANDMARKS,

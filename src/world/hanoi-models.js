@@ -44,6 +44,31 @@ export const HANOI_MODELS = Object.freeze({
   hanoi_opera: { sockets: S(g, g, p, g), tags: ['path', 'house', 'landmark', 'blocker'] },
   // Long Bien Bridge, steel truss (was bridge, rot 1, path E-W over river N-S).
   hanoi_longbien: { sockets: S(p, r, p, r), tags: ['path', 'water', 'bridge'] },
+  // ---- Phase 2B street elements (Old Quarter only). Each copies the sockets + tags of the
+  // cell it replaces, so the authored grid stays socket-consistent (0 mismatches) by
+  // construction. All 11 are Hanoi-only: the WFC solver option count stays at 95.
+  // Road junction with zebra crossing (was path_cross, rot 0, all path).
+  hanoi_road: { sockets: S(p, p, p, p), tags: ['path'] },
+  // Sidewalk slab (was meadow, all grass; pavement print on the base, kerb flap).
+  hanoi_sidewalk: { sockets: S(g, g, g, g), tags: [] },
+  // Street tree (was meadow, all grass).
+  hanoi_tree: { sockets: S(g, g, g, g), tags: [] },
+  // Bush (was meadow, all grass).
+  hanoi_bush: { sockets: S(g, g, g, g), tags: [] },
+  // Traffic light (was path_end, rot 2, socket at N).
+  hanoi_trafficlight: { sockets: S(g, g, p, g), tags: ['path'] },
+  // Traffic police standing in the street (was village_green rot 1, path E-W).
+  hanoi_police: { sockets: S(p, g, p, g), tags: ['path', 'village'] },
+  // Pedestrians, static paper figures (was village rot 1, path E-W).
+  hanoi_pedestrian: { sockets: S(p, g, p, g), tags: ['path', 'village'] },
+  // Street vendor with baskets (was meadow, all grass).
+  hanoi_vendor: { sockets: S(g, g, g, g), tags: ['village'] },
+  // Pho stall (was meadow, all grass).
+  hanoi_phostall: { sockets: S(g, g, g, g), tags: ['village'] },
+  // Electric pole with crossarm (was meadow, all grass).
+  hanoi_pole: { sockets: S(g, g, g, g), tags: ['village'] },
+  // Street lamp (was meadow, all grass).
+  hanoi_lamp: { sockets: S(g, g, g, g), tags: ['village'] },
 });
 
 export const HANOI_MODEL_IDS = Object.freeze(Object.keys(HANOI_MODELS));

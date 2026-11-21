@@ -22,6 +22,13 @@ export const HANOI_SIZE = 40;
 export const HANOI_MIN = -20;
 export const HANOI_OFFSET = 20;
 
+// Dataset provenance marker (Phase 2D). Same watermark family as
+// DATASET_PROVENANCE in src/game/landmark-history.js: if a copy of this map
+// shows up elsewhere carrying this string, the copy came from this repo.
+// Check: search the copy for HANOI3D-DANKEZO-WM-9Q7K2M. The game never reads
+// this export; it changes no cell, no landmark, no discovery.
+export const HANOI_DATASET_MARKER = 'HANOI3D-DANKEZO-WM-9Q7K2M';
+
 export const HANOI_ROWS = Object.freeze([
   'HFFFFHFFFFHFFFFHFFFFHFFFFHFFFFHFFFFHFFFH',
   'FG~~~~~~FFFFHGFFFFHGFFFFHGFFFFHGFFFFHssF',
@@ -34,13 +41,13 @@ export const HANOI_ROWS = Object.freeze([
   'FF..~~~~~~~......................HHH.!!F',
   'FF...~~~~~.M.....................HHH.!!F',
   'HF....~~~~.|..e..e..........,,,,.HHH.!!H',
-  'FF.....~~..|..V..v..........,,,,.....!!F',
-  'FH.....,,,.|..v..V..........,,,,.....!!F',
-  'FGFFFF.,,,.|..V..o...................!!F',
-  'FFFFFF...h-+Uu+OU+uOUuO---a-=---=----BBf',
-  'HFFFFF.....|..o..V........|..........!!H',
-  'FF...~~....|..V..v.....s..|...GGGG...!!F',
-  'FF.........|..g..g.....!..|...GGGG...!!F',
+  'FF.....~~..|TqVqTvq.qTq.....,,,,.....!!F',
+  'FH.....,,,.|l.v..V....l.....,,,,.....!!F',
+  'FGFFFF.,,,.|.kVkjok.k................!!F',
+  'FFFFFF...h-+UiXOiXuQUiO---a-=---=----BBf',
+  'HFFFFF.....|Ykoj.Vk..jZ...|..........!!H',
+  'FF...~~....|T.V..v.....s..|...GGGG...!!F',
+  'FF.........|..D..D.....!..|...GGGG...!!F',
   'FH.........|.....~~W~~hJ-m|...GGGG...!!F',
   'FG.........|.....~~|~~~S..|C..GGGG...!!F',
   'HFGGG..h-a-+-------c-a----+c----f....!!H',
@@ -129,6 +136,21 @@ export const HANOI_LEGEND = Object.freeze({
   U: { tileId: 'hanoi_tubehouse', rot: 1 },
   u: { tileId: 'hanoi_tubehouse_b', rot: 1 },
   O: { tileId: 'hanoi_tubehouse_green', rot: 1 },
+  // Phase 2B street elements (Old Quarter only, Hanoi-only registry).
+  // X road junction (path_cross sockets), k sidewalk, T tree, q bush, D traffic light
+  // (path_end sockets, rot 2 = socket at N), Q traffic police, i pedestrian (tubehouse
+  // rot 1 sockets, path E-W), Y street vendor, Z pho stall, l electric pole, j street lamp.
+  X: { tileId: 'hanoi_road', rot: 0 },
+  k: { tileId: 'hanoi_sidewalk', rot: 0 },
+  T: { tileId: 'hanoi_tree', rot: 0 },
+  q: { tileId: 'hanoi_bush', rot: 0 },
+  D: { tileId: 'hanoi_trafficlight', rot: 2 },
+  Q: { tileId: 'hanoi_police', rot: 1 },
+  i: { tileId: 'hanoi_pedestrian', rot: 1 },
+  Y: { tileId: 'hanoi_vendor', rot: 0 },
+  Z: { tileId: 'hanoi_phostall', rot: 0 },
+  l: { tileId: 'hanoi_pole', rot: 0 },
+  j: { tileId: 'hanoi_lamp', rot: 0 },
   y: { tileId: 'house', rot: 0 },
 });
 

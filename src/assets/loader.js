@@ -14,6 +14,9 @@ import { HANOI_MODELS, HANOI_MODEL_IDS } from '../world/hanoi-models.js';
 
 const P = CONFIG.palette;
 
+/** Phase 2A: stock ids whose tiles come from basic-grand.glb (grand Basic buildings). */
+const BASIC_GRAND_IDS = ['house', 'manor', 'barn_farm', 'village', 'village_b', 'village_green'];
+
 // ---- flat printed base -----------------------------------------------------------------------
 function baseTexture(id, sockets) {
   const N = 128;
@@ -41,6 +44,26 @@ function baseTexture(id, sockets) {
     g.arc(N / 2, N / 2, 0.6 * u, 0, Math.PI * 2);
     g.fill();
   }
+  if (id === 'hanoi_road') {
+    // zebra crossing bands on the N and S arms: 5 white dashes each (paper print)
+    g.fillStyle = '#fbf6ea';
+    for (const cy of [0.5 - 0.55 / 2, 0.5 + 0.55 / 2]) {
+      for (const cx of [0.34, 0.42, 0.5, 0.58, 0.66]) {
+        g.fillRect((cx - 0.0225) * N, (cy - 0.075) * N, 0.045 * N, 0.15 * N);
+      }
+    }
+  }
+  if (id === 'hanoi_sidewalk') {
+    // pavement slab: kraft-cream wash, terracotta kerb lines on both long edges, joints
+    g.fillStyle = P.paperShade;
+    g.fillRect(0, 0, N, N);
+    g.fillStyle = P.terracotta;
+    g.fillRect(0, 0, N, 0.03 * N);
+    g.fillRect(0, 0.97 * N, N, 0.03 * N);
+    g.fillStyle = 'rgba(90,58,40,0.25)';
+    g.fillRect(0.5 * N, 0, 1, N);
+    g.fillRect(0, 0.5 * N, N, 1);
+  }
   g.strokeStyle = 'rgba(74,52,38,0.18)';
   g.lineWidth = 1;
   g.strokeRect(0.5, 0.5, N - 1, N - 1);
@@ -66,6 +89,36 @@ function shapeFor(kind, w, h) {
     s.closePath();
   } else if (kind === 'house') {
     s.moveTo(-a, 0); s.lineTo(a, 0); s.lineTo(a, h * 0.6); s.lineTo(0, h); s.lineTo(-a, h * 0.6); s.closePath();
+  } else if (kind === 'dormer') {
+    // Phase 2A: thin stem (hidden against the body) + box + cap, a dormer high on the roof face
+    const st = 0.015;
+    const y0 = h * 0.61, y1 = h * 0.86;
+    s.moveTo(-st, 0); s.lineTo(st, 0); s.lineTo(st, y0); s.lineTo(a, y0); s.lineTo(a, y1);
+    s.lineTo(0, h); s.lineTo(-a, y1); s.lineTo(-a, y0); s.lineTo(-st, y0); s.closePath();
+  } else if (kind === 'swag') {
+    // Phase 2A: bunting band, two side posts + a top band, open middle (hole)
+    s.moveTo(-a, 0); s.lineTo(a, 0); s.lineTo(a, h); s.lineTo(-a, h); s.closePath();
+    const hole = new THREE.Path();
+    const p = 0.05, top = h * 0.82;
+    hole.moveTo(-a + p, 0.02); hole.lineTo(a - p, 0.02); hole.lineTo(a - p, top); hole.lineTo(-a + p, top); hole.closePath();
+    s.holes.push(hole);
+  } else if (kind === 'lamp') {
+    // Phase 2A: thin post + head box at the top, one piece
+    const st = 0.03;
+    const y0 = h * 0.82;
+    s.moveTo(-st, 0); s.lineTo(st, 0); s.lineTo(st, y0); s.lineTo(a, y0); s.lineTo(a, h);
+    s.lineTo(-a, h); s.lineTo(-a, y0); s.lineTo(-st, y0); s.closePath();
+  } else if (kind === 'figure') {
+    // Phase 2B: paper person - straight body + round head, one piece
+    s.moveTo(-a, 0); s.lineTo(a, 0); s.lineTo(a, h * 0.7);
+    s.absellipse(0, h * 0.7, a, h * 0.3, 0, Math.PI, false);
+    s.closePath();
+  } else if (kind === 'glowtop') {
+    // Phase 2B: thin stem + small lit box at the top (traffic light / street lamp glow)
+    const st = 0.015;
+    const y0 = h * 0.84;
+    s.moveTo(-st, 0); s.lineTo(st, 0); s.lineTo(st, y0); s.lineTo(a, y0); s.lineTo(a, h);
+    s.lineTo(-a, h); s.lineTo(-a, y0); s.lineTo(-st, y0); s.closePath();
   } else {
     s.moveTo(-a, 0); s.lineTo(a, 0); s.lineTo(a, h); s.lineTo(-a, h); s.closePath();
   }
@@ -98,8 +151,84 @@ const RECIPES = {
   path_cross: [tuft(-0.7, -0.7), tuft(0.7, 0.7)],
   path_end: [['rect', 0.07, 0.55, 0, -0.1, 0, P.ink, 1], ['rect', 0.42, 0.16, 0, -0.08, 0, P.kraft, 1], tuft(0.6, -0.5)],
   lantern_post: [['rect', 0.06, 0.95, 0.5, 0, 0, P.ink, 1], ['rect', 0.2, 0.24, 0.5, 0.02, 0, P.lantern, 1], tuft(-0.65, 0.4)],
-  house: [['house', 0.9, 0.95, 0, -0.45, 0, P.paper, 1], ['tri', 1.1, 0.5, 0, -0.42, 0, P.terracotta, 1], tree(0.7, -0.1, 0.7, P.olive)],
-  village: [['house', 0.6, 0.8, -0.62, -0.3, 0, P.paper, 1], ['house', 0.6, 0.9, 0.62, 0.1, 0, P.paperShade, 1], ['tri', 0.72, 0.4, -0.62, -0.28, 0, P.terracotta, 1], ['tri', 0.72, 0.42, 0.62, 0.12, 0, P.rust, 1]],
+  // Phase 2A grand Basic buildings (mirror of RECIPES in tools/step5/build-basic-glb.mjs,
+  // without the hero art card). The stock ids are kept on purpose: wfc.js, world.js and the
+  // animal/life configs all key on them, so renaming would break the solver. Only the
+  // geometry + art change; sockets, tags and biome weights in core/models.js are untouched.
+  house: [
+    ['tri', 1.2, 1.3, 0, -0.35, 0, P.terracotta, 1],
+    ['rect', 1.0, 0.95, 0, -0.32, 0, P.paper, 1],
+    ['rect', 0.12, 1.15, 0.4, -0.29, 0, P.ink, 1],
+    ['dormer', 0.26, 1.02, 0.18, -0.26, 0, P.paperShade, 1],
+    ['rect', 0.1, 0.42, -0.32, -0.23, 0, P.sage, 1],
+    ['rect', 0.1, 0.42, 0.32, -0.23, 0, P.sage, 1],
+    ['rect', 0.36, 0.12, 0, -0.2, 0, P.terracotta, 1],
+    ['rect', 0.14, 0.3, 0, -0.17, 0, P.ink, 1],
+  ],
+  manor: [
+    ['tri', 0.44, 1.4, 0.55, -0.38, 0, P.rose, 1],
+    ['rect', 0.34, 1.3, 0.55, -0.35, 0, P.ochre, 1],
+    ['tri', 1.3, 1.05, -0.15, -0.32, 0, P.rose, 1],
+    ['rect', 1.1, 0.85, -0.15, -0.29, 0, P.ochre, 1],
+    ['arch', 0.14, 0.42, -0.45, -0.26, 0, P.ink, 1],
+    ['arch', 0.14, 0.42, -0.05, -0.26, 0, P.ink, 1],
+    ['rect', 1.5, 0.22, 0, -0.12, 0, P.paperShade, 1],
+    ['rect', 0.16, 0.34, 0, -0.09, 0, P.ink, 1],
+    tree(-0.72, -0.05, 0.9, P.pine),
+    tree(0.72, 0.02, 0.85, P.pine),
+  ],
+  barn_farm: [
+    ['tri', 0.34, 1.4, 0.62, -0.38, 0, P.rust, 1],
+    ['rect', 0.3, 1.28, 0.62, -0.35, 0, P.paperShade, 1],
+    ['tri', 1.3, 1.05, -0.2, -0.32, 0, P.rust, 1],
+    ['rect', 1.1, 0.85, -0.2, -0.29, 0, P.kraft, 1],
+    ['rect', 0.3, 0.45, -0.2, -0.26, 0, P.brown, 1],
+    ['tri', 0.4, 0.35, -0.78, -0.05, 0, P.mustard, 1],
+    ['tri', 0.32, 0.28, 0.78, 0.05, 0, P.mustard, 1],
+    ['rect', 0.3, 0.18, -0.45, 0.15, 0, P.brown, 1],
+    ['rect', 1.6, 0.14, 0, 0.28, 0, P.brown, 1],
+  ],
+  village: [
+    ['tri', 0.74, 1.1, -0.62, -0.35, 0, P.terracotta, 1],
+    ['rect', 0.62, 0.85, -0.62, -0.32, 0, P.paper, 1],
+    ['tri', 0.74, 1.05, 0.62, -0.32, 0, P.rust, 1],
+    ['rect', 0.62, 0.8, 0.62, -0.29, 0, P.paperShade, 1],
+    ['rect', 0.5, 0.14, -0.62, -0.23, 0, P.teal, 1],
+    ['rect', 0.5, 0.14, 0.62, -0.2, 0, P.terracotta, 1],
+    ['rect', 0.34, 0.3, -0.25, 0.05, 0, P.kraft, 1],
+    ['rect', 0.3, 0.1, -0.25, 0.08, 0, P.mustard, 1],
+    ['rect', 0.34, 0.3, 0.28, 0.08, 0, P.kraft, 1],
+    ['swag', 1.6, 1.0, 0, -0.14, 0, P.rose, 1],
+  ],
+  village_b: [
+    ['tri', 1.05, 1.0, 0.25, -0.35, 0, P.rose, 1],
+    ['rect', 0.9, 0.8, 0.25, -0.32, 0, P.paper, 1],
+    ['rect', 0.14, 0.3, 0.25, -0.29, 0, P.ink, 1],
+    ['rect', 0.1, 0.3, -0.05, -0.26, 0, P.sage, 1],
+    ['rect', 0.1, 0.3, 0.55, -0.26, 0, P.sage, 1],
+    ['rect', 1.5, 0.25, 0, -0.1, 0, P.paperShade, 1],
+    ['arch', 0.5, 0.22, -0.55, 0.12, 0, P.teal, 1],
+    ['rect', 0.05, 0.3, -0.7, 0.15, 0, P.moss, 1],
+    ['rect', 0.05, 0.26, -0.42, 0.15, 0, P.olive, 1],
+    ['rect', 0.08, 0.45, 0.72, 0.1, 0, P.ink, 1],
+    ['rect', 0.18, 0.1, 0.72, 0.13, 0, P.paperShade, 1],
+    ['tri', 0.14, 0.18, -0.15, 0.3, 0, P.mustard, 1],
+  ],
+  village_green: [
+    tree(-0.68, -0.3, 1.0, P.moss),
+    tree(0.68, -0.25, 0.95, P.olive),
+    ['rect', 0.3, 0.8, 0, -0.2, 0, P.paper, 1],
+    ['arch', 0.34, 1.1, 0, -0.23, 0, P.teal, 1],
+    ['rect', 0.7, 0.25, 0, -0.14, 0, P.tealDeep, 1],
+    ['lamp', 0.14, 0.95, -0.68, -0.05, 0, P.ink, 1],
+    ['lamp', 0.14, 0.95, 0.68, -0.02, 0, P.ink, 1],
+    ['lamp', 0.14, 0.9, -0.55, 0.25, 0, P.ink, 1],
+    ['lamp', 0.14, 0.9, 0.55, 0.28, 0, P.ink, 1],
+    ['rect', 0.4, 0.16, -0.55, 0.22, 0, P.brown, 1],
+    ['rect', 0.4, 0.16, 0.55, 0.22, 0, P.brown, 1],
+    ['tri', 0.08, 0.07, -0.2, 0.3, 0, P.ink, 1],
+    ['tri', 0.08, 0.07, 0.22, 0.32, 0, P.ink, 1],
+  ],
   river_straight: [['rect', 0.06, 0.36, 0.6, -0.4, 0, P.olive, 1], tuft(-0.65, 0.5)],
   river_corner: [tuft(-0.6, 0.6), ['rect', 0.06, 0.36, -0.55, -0.2, 0, P.olive, 1]],
   river_source: [['arch', 0.9, 0.5, 0, -0.25, 0, P.paperShade, 1], ['arch', 0.5, 0.3, 0.3, -0.1, 0, P.kraft, 1]],
@@ -107,11 +236,15 @@ const RECIPES = {
   // Step 3 Hanoi landmarks (Hanoi-only models; flat cut-paper silhouettes).
   // Layering rule: every flap starts at ground y = 0, so a taller piece behind (smaller z) shows
   // above a shorter wider piece in front of it. Heights stay under ~1.35 (traveller is 0.6).
+  // Phase 2B: landmarks are bigger and more layered (taller flaps up to ~1.5, extra wings,
+  // plinths and side pieces); the GLB hero cards grow to match (same atlas sprites).
   hanoi_turtletower: [
     ['tri', 0.58, 1.05, 0, -0.25, 0, P.terracotta, 1],
     ['rect', 0.44, 0.8, 0, -0.22, 0, P.paper, 1],
     ['rect', 0.66, 0.22, 0, -0.19, 0, P.paperShade, 1],
     ['rect', 0.1, 0.3, 0, -0.18, 0, P.ink, 1],
+    ['rect', 0.8, 0.18, 0, -0.12, 0, P.paperShade, 1],
+    ['rect', 0.3, 0.5, 0.42, -0.2, 0, P.paper, 1],
   ],
   hanoi_ngocson: [
     ['tri', 1.1, 0.9, 0, -0.28, 0, P.rust, 1],
@@ -120,11 +253,15 @@ const RECIPES = {
     ['rect', 0.08, 0.5, -0.35, -0.19, 0, P.rust, 1],
     ['rect', 0.08, 0.5, 0.35, -0.19, 0, P.rust, 1],
     ['arch', 0.16, 0.42, 0, -0.18, 0, P.ink, 1],
+    ['house', 0.42, 0.62, 0.62, -0.2, 0, P.paperShade, 1],
+    ['rect', 0.06, 0.8, -0.62, -0.18, 0, P.rust, 1],
   ],
   hanoi_thehuc: [
     ['arch', 1.3, 0.34, -0.3, 0, 90, P.rust, 1],
     ['arch', 1.3, 0.34, 0.3, 0, 90, P.rust, -1],
     ['rect', 1.5, 0.12, 0, 0.02, 0, P.terracotta, 1],
+    ['rect', 0.08, 0.5, -0.6, 0, 90, P.rust, 1],
+    ['rect', 0.08, 0.5, 0.6, 0, 90, P.rust, 1],
   ],
   hanoi_tranquoc: [
     ['rect', 0.06, 1.3, 0, -0.3, 0, P.mustard, 1],
@@ -134,6 +271,8 @@ const RECIPES = {
     ['rect', 0.5, 0.7, 0, -0.18, 0, P.paperShade, 1],
     ['tri', 0.9, 0.55, 0, -0.15, 0, P.terracotta, 1],
     ['rect', 0.7, 0.38, 0, -0.12, 0, P.paper, 1],
+    ['rect', 0.9, 0.25, 0, -0.1, 0, P.paperShade, 1],
+    ['house', 0.45, 0.7, 0.55, -0.18, 0, P.paper, 1],
   ],
   hanoi_tubehouse: [
     ['house', 0.55, 0.95, -0.55, -0.28, 0, P.paper, 1],
@@ -141,12 +280,16 @@ const RECIPES = {
     ['house', 0.5, 0.8, 0.55, -0.24, 0, P.paperShade, 1],
     ['tri', 0.62, 0.42, 0.55, -0.21, 0, P.rust, 1],
     ['rect', 0.1, 0.32, -0.55, -0.22, 0, P.ink, 1],
+    ['rect', 0.1, 0.55, -0.35, -0.22, 0, P.brown, 1],
+    ['rect', 0.4, 0.12, 0.55, -0.18, 0, P.teal, 1],
   ],
   hanoi_tubehouse_b: [
     ['house', 0.62, 1.0, 0.42, -0.26, 0, P.paper, 1],
     ['tri', 0.74, 0.55, 0.42, -0.23, 0, P.terracotta, 1],
     ['rect', 0.2, 0.14, 0.42, -0.2, 0, P.mustard, 1],
     tree(-0.55, 0.05, 0.85, P.olive),
+    ['rect', 0.4, 0.12, 0.42, -0.17, 0, P.mustard, 1],
+    ['rect', 0.1, 0.5, 0.62, -0.2, 0, P.brown, 1],
   ],
   hanoi_tubehouse_green: [
     tree(-0.6, -0.35, 0.9),
@@ -154,6 +297,8 @@ const RECIPES = {
     ['rect', 0.06, 0.95, 0.55, 0, 0, P.ink, 1],
     ['rect', 0.2, 0.24, 0.55, 0.02, 0, P.lantern, 1],
     ['rect', 0.34, 0.22, -0.15, 0.35, 0, P.kraft, 1],
+    ['rect', 0.06, 0.8, -0.55, 0, 0, P.ink, 1],
+    ['rect', 0.18, 0.2, -0.55, 0.02, 0, P.lantern, 1],
   ],
   hanoi_mausoleum: [
     ['rect', 1.0, 0.95, 0, -0.28, 0, P.brown, 1],
@@ -163,6 +308,8 @@ const RECIPES = {
     ['rect', 0.06, 0.45, -0.25, -0.17, 0, P.ink, 1],
     ['rect', 0.06, 0.45, 0, -0.17, 0, P.ink, 1],
     ['rect', 0.06, 0.45, 0.25, -0.17, 0, P.ink, 1],
+    ['rect', 0.4, 0.6, -0.62, -0.2, 0, P.paperShade, 1],
+    ['rect', 0.4, 0.6, 0.62, -0.2, 0, P.paperShade, 1],
   ],
   hanoi_badinh: [
     ['rect', 0.07, 1.05, 0, -0.6, 0, P.ink, 1],
@@ -170,6 +317,8 @@ const RECIPES = {
     ['rect', 0.5, 0.3, 0, -0.09, 0, P.kraft, 1],
     tuft(-0.7, 0.5),
     tuft(0.7, -0.5),
+    ['rect', 0.06, 1.3, 0.45, -0.3, 0, P.ink, 1],
+    ['arch', 0.5, 0.25, -0.5, 0.4, 0, P.rose, 1],
   ],
   hanoi_vanmieu: [
     ['tri', 0.95, 1.0, 0, -0.28, 0, P.rust, 1],
@@ -178,12 +327,16 @@ const RECIPES = {
     ['rect', 0.08, 0.55, -0.28, -0.19, 0, P.rust, 1],
     ['rect', 0.08, 0.55, 0.28, -0.19, 0, P.rust, 1],
     ['arch', 0.18, 0.42, 0, -0.18, 0, P.ink, 1],
+    ['rect', 0.2, 0.4, -0.52, -0.15, 0, P.paperShade, 1],
+    ['rect', 0.2, 0.4, 0.52, -0.15, 0, P.paperShade, 1],
   ],
   hanoi_onepillar: [
     ['tri', 0.68, 1.12, 0, -0.28, 0, P.terracotta, 1],
     ['rect', 0.5, 0.92, 0, -0.25, 0, P.paper, 1],
     ['rect', 0.62, 0.34, 0, -0.2, 0, P.paperShade, 1],
     ['rect', 0.1, 0.26, 0, -0.17, 0, P.ink, 1],
+    ['arch', 0.9, 0.3, 0, 0.15, 0, P.teal, 1],
+    ['rect', 0.7, 0.2, 0, -0.12, 0, P.paperShade, 1],
   ],
   hanoi_cathedral: [
     ['tri', 0.32, 1.35, -0.38, -0.28, 0, P.paperShade, 1],
@@ -191,6 +344,8 @@ const RECIPES = {
     ['tri', 0.72, 1.0, 0, -0.28, 0, P.terracotta, 1],
     ['rect', 0.62, 0.72, 0, -0.25, 0, P.paper, 1],
     ['arch', 0.16, 0.45, 0, -0.22, 0, P.ink, 1],
+    ['tri', 0.25, 0.8, -0.58, -0.2, 0, P.paper, 1],
+    ['tri', 0.25, 0.8, 0.58, -0.2, 0, P.paper, 1],
   ],
   hanoi_opera: [
     ['tri', 1.2, 0.85, 0, -0.28, 0, P.terracotta, 1],
@@ -199,12 +354,67 @@ const RECIPES = {
     ['arch', 0.12, 0.36, -0.32, -0.22, 0, P.tealDeep, 1],
     ['arch', 0.12, 0.36, 0.32, -0.22, 0, P.tealDeep, 1],
     ['rect', 1.1, 0.16, 0, -0.19, 0, P.paperShade, 1],
+    ['rect', 0.35, 0.55, -0.68, -0.2, 0, P.paperShade, 1],
+    ['rect', 0.35, 0.55, 0.68, -0.2, 0, P.paperShade, 1],
+    ['rect', 1.2, 0.14, 0, -0.12, 0, P.paperShade, 1],
   ],
   hanoi_longbien: [
     ['arch', 1.3, 0.34, -0.3, 0, 90, P.brown, 1],
     ['arch', 1.3, 0.34, 0.3, 0, 90, P.brown, -1],
     ['rect', 0.08, 0.5, -0.3, 0, 90, P.ink, 1],
     ['rect', 0.08, 0.5, 0.3, 0, 90, P.ink, 1],
+    ['rect', 0.08, 0.6, -0.5, 0, 90, P.ink, 1],
+    ['rect', 0.08, 0.6, 0.5, 0, 90, P.ink, 1],
+  ],
+  // Phase 2B street elements (Old Quarter only; flat cut-paper silhouettes, static figures).
+  hanoi_road: [
+    ['rect', 0.12, 0.3, -0.75, -0.75, 0, P.ink, 1],
+    ['rect', 0.12, 0.3, 0.75, 0.75, 0, P.ink, 1],
+  ],
+  hanoi_sidewalk: [
+    ['rect', 0.5, 0.12, 0, 0.55, 0, P.paperShade, 1],
+  ],
+  hanoi_tree: [
+    tree(-0.25, -0.15, 1.15, P.pine),
+    tree(0.3, 0.25, 0.85, P.sage),
+  ],
+  hanoi_bush: [
+    ['arch', 0.55, 0.42, -0.35, -0.1, 0, P.sage, 1],
+    ['arch', 0.45, 0.34, 0.3, 0.15, 0, P.olive, 1],
+    ['arch', 0.35, 0.28, 0.05, 0.35, 0, P.moss, 1],
+  ],
+  hanoi_trafficlight: [
+    ['rect', 0.08, 0.95, 0.35, -0.1, 0, P.ink, 1],
+    ['lamp', 0.26, 1.0, 0.35, -0.1, 0, P.ink, 1],
+    ['glowtop', 0.12, 1.0, 0.35, -0.1, 0, P.lantern, 1],
+  ],
+  hanoi_police: [
+    ['figure', 0.36, 1.0, 0, -0.1, 0, P.ink, 1],
+    ['figure', 0.26, 0.85, 0, -0.08, 0, P.paper, 1],
+  ],
+  hanoi_pedestrian: [
+    ['figure', 0.3, 0.95, -0.45, -0.1, 0, P.rose, 1],
+    ['figure', 0.3, 0.9, 0.45, 0.05, 0, P.teal, 1],
+    ['figure', 0.2, 0.6, 0.05, 0.2, 0, P.mustard, 1],
+  ],
+  hanoi_vendor: [
+    ['figure', 0.3, 0.9, 0, -0.15, 0, P.paper, 1],
+    ['arch', 0.5, 0.32, -0.5, 0.1, 0, P.ochre, 1],
+    ['arch', 0.5, 0.32, 0.5, 0.1, 0, P.ochre, 1],
+  ],
+  hanoi_phostall: [
+    ['house', 0.9, 1.0, 0, -0.2, 0, P.terracotta, 1],
+    ['rect', 0.5, 0.4, 0, -0.15, 0, P.paper, 1],
+    ['arch', 0.24, 0.3, -0.2, -0.1, 0, P.ink, 1],
+    ['rect', 0.34, 0.18, 0.2, -0.05, 0, P.mustard, 1],
+  ],
+  hanoi_pole: [
+    ['lamp', 0.55, 1.3, 0, -0.15, 0, P.ink, 1],
+    ['rect', 0.22, 0.35, 0.3, 0.1, 0, P.paperShade, 1],
+  ],
+  hanoi_lamp: [
+    ['lamp', 0.3, 1.05, 0, -0.1, 0, P.ink, 1],
+    ['glowtop', 0.14, 1.05, 0, -0.1, 0, P.lantern, 1],
   ],
 };
 
@@ -417,8 +627,8 @@ export async function loadAssets({ materials, renderer, quality, hanoi = false }
   };
   const noTex = () => ({ paper: null, paperNormal: null, paperRough: null, manifest: null });
 
-  const [tilesGltf, hanoiGltf, travGltf, textures, meta] = await Promise.all([
-    loadGLTF(A.tilesUrl), hanoi ? loadGLTF(A.hanoiTilesUrl) : Promise.resolve(null), loadGLTF(A.travellerUrl), loadTextures(A, anisotropy).catch(noTex), fetchJSON(A.metaUrl),
+  const [tilesGltf, basicGrandGltf, hanoiGltf, travGltf, textures, meta] = await Promise.all([
+    loadGLTF(A.tilesUrl), !hanoi ? loadGLTF(A.basicGrandUrl) : Promise.resolve(null), hanoi ? loadGLTF(A.hanoiTilesUrl) : Promise.resolve(null), loadGLTF(A.travellerUrl), loadTextures(A, anisotropy).catch(noTex), fetchJSON(A.metaUrl),
   ]);
 
   const protos = new Map();
@@ -442,6 +652,31 @@ export async function loadAssets({ materials, renderer, quality, hanoi = false }
         protos.set(id, node);
         stats.tiles[id] = st;
         fromGltf++;
+      } catch (err) {
+        warn('tile', id, 'failed:', err && err.message);
+      }
+    }
+  }
+  // Phase 2A: basic-grand.glb overrides the 6 stock building tiles with the grand versions.
+  // Loaded only off Hanoi mode (mirror of the step-6 lazy-load pattern); if a node is
+  // missing or invalid, the tiles.glb version already in protos stays in place.
+  if (basicGrandGltf && basicGrandGltf.scene) {
+    const byName = new Map();
+    for (const c of [...basicGrandGltf.scene.children]) byName.set(c.name, c);
+    for (const id of BASIC_GRAND_IDS) {
+      const node = byName.get(id);
+      if (!node) continue;
+      try {
+        node.removeFromParent();
+        node.position.set(0, 0, 0); node.quaternion.identity(); node.scale.set(1, 1, 1);
+        const st = adopt(node, id + '__', mats);
+        const base = node.getObjectByName('base');
+        if (!base || st.hinges === 0) { warn('tile', id, 'has no base / flaps in basic-grand.glb - keeping tiles.glb version'); continue; }
+        node.name = id;
+        node.userData.model = id;
+        node.updateMatrixWorld(true);
+        protos.set(id, node);
+        stats.tiles[id] = st;
       } catch (err) {
         warn('tile', id, 'failed:', err && err.message);
       }

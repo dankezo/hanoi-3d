@@ -55,7 +55,10 @@ export const spring = {
   restitution: 0.25, // fraction of the impact speed returned when the flap slaps the page
   minBounceSpeed: 0.5, // (1/s, x frequency scale) slower impacts just stick
   /** Safety cap on fixed steps consumed by one update call (dt is capped at 1/20 s by the loop anyway). */
-  maxSubSteps: 30,
+  /** Phase 2E: 30 -> 12. The loop caps dt at 1/20 s, so one update can need at most 12 steps at 1/240 s;
+      12 binds only if a larger dt ever reaches fold.update, and it stops a slow frame from paying for
+      dropped sim time it can never catch up (the cap discards the remainder, the fold just runs slower). */
+  maxSubSteps: 12,
 
   // --- wind (biome pass): idle sway of risen flaps + windmill sails. See the wind block at the top of fold.js. ---
   wind: {

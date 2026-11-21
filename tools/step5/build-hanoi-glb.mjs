@@ -68,6 +68,18 @@ const SOCKETS = {
   hanoi_cathedral: { n: 'grass', e: 'grass', s: 'path', w: 'grass' },
   hanoi_opera: { n: 'grass', e: 'grass', s: 'path', w: 'grass' },
   hanoi_longbien: { n: 'path', e: 'river', s: 'path', w: 'river' },
+  // Phase 2B street elements (copy the sockets of the cell each replaces).
+  hanoi_road: { n: 'path', e: 'path', s: 'path', w: 'path' },
+  hanoi_sidewalk: { n: 'grass', e: 'grass', s: 'grass', w: 'grass' },
+  hanoi_tree: { n: 'grass', e: 'grass', s: 'grass', w: 'grass' },
+  hanoi_bush: { n: 'grass', e: 'grass', s: 'grass', w: 'grass' },
+  hanoi_trafficlight: { n: 'grass', e: 'grass', s: 'path', w: 'grass' },
+  hanoi_police: { n: 'path', e: 'grass', s: 'path', w: 'grass' },
+  hanoi_pedestrian: { n: 'path', e: 'grass', s: 'path', w: 'grass' },
+  hanoi_vendor: { n: 'grass', e: 'grass', s: 'grass', w: 'grass' },
+  hanoi_phostall: { n: 'grass', e: 'grass', s: 'grass', w: 'grass' },
+  hanoi_pole: { n: 'grass', e: 'grass', s: 'grass', w: 'grass' },
+  hanoi_lamp: { n: 'grass', e: 'grass', s: 'grass', w: 'grass' },
 };
 
 // ---- shapes (same math as shapeFor in src/assets/loader.js) ------------------------------------
@@ -86,6 +98,23 @@ function shapeFor(kind, w, h) {
     s.closePath();
   } else if (kind === 'house') {
     s.moveTo(-a, 0); s.lineTo(a, 0); s.lineTo(a, h * 0.6); s.lineTo(0, h); s.lineTo(-a, h * 0.6); s.closePath();
+  } else if (kind === 'figure') {
+    // Phase 2B: paper person - straight body + round head, one piece (mirrors loader.js)
+    s.moveTo(-a, 0); s.lineTo(a, 0); s.lineTo(a, h * 0.7);
+    s.absellipse(0, h * 0.7, a, h * 0.3, 0, Math.PI, false);
+    s.closePath();
+  } else if (kind === 'glowtop') {
+    // Phase 2B: thin stem + small lit box at the top (mirrors loader.js)
+    const st = 0.015;
+    const y0 = h * 0.84;
+    s.moveTo(-st, 0); s.lineTo(st, 0); s.lineTo(st, y0); s.lineTo(a, y0); s.lineTo(a, h);
+    s.lineTo(-a, h); s.lineTo(-a, y0); s.lineTo(-st, y0); s.closePath();
+  } else if (kind === 'lamp') {
+    // Phase 2B: thin post + head box at the top (mirrors loader.js)
+    const st = 0.03;
+    const y0 = h * 0.82;
+    s.moveTo(-st, 0); s.lineTo(st, 0); s.lineTo(st, y0); s.lineTo(a, y0); s.lineTo(a, h);
+    s.lineTo(-a, h); s.lineTo(-a, y0); s.lineTo(-st, y0); s.closePath();
   } else {
     s.moveTo(-a, 0); s.lineTo(a, 0); s.lineTo(a, h); s.lineTo(-a, h); s.closePath();
   }
@@ -124,6 +153,18 @@ function buildBase(id, mat) {
     if (s.s === 'path' && Math.abs(x) < pw && z > 0) c.copy(kraft);
     if (s.e === 'path' && Math.abs(z) < pw && x > 0) c.copy(kraft);
     if (s.w === 'path' && Math.abs(z) < pw && x < 0) c.copy(kraft);
+    // Phase 2B ground prints (mirror of baseTexture in loader.js).
+    if (id === 'hanoi_road') {
+      // zebra dashes: 5 stripes on each of the N and S arms (z near -0.55 / +0.55)
+      const inBand = (zz) => Math.abs(z - zz) <= 0.15;
+      const inStripe = [-0.32, -0.16, 0, 0.16, 0.32].some((sx) => Math.abs(x - sx) <= 0.045);
+      if ((inBand(-0.55) || inBand(0.55)) && inStripe) c.set('#fbf6ea');
+    }
+    if (id === 'hanoi_sidewalk') {
+      // pavement wash + terracotta kerb lines on both long edges
+      c.copy(hex(P.paperShade));
+      if (Math.abs(z) > 0.93) c.copy(hex(P.terracotta));
+    }
     // faint hand-painted value jitter (+/- 3%)
     const j = 0.97 + hash01(i, 7) * 0.06;
     col[i * 3] = c.r * j; col[i * 3 + 1] = c.g * j; col[i * 3 + 2] = c.b * j;
@@ -190,6 +231,8 @@ const RECIPES = {
     ['rect', 0.44, 0.8, 0, -0.22, 0, P.paper, 1],
     ['rect', 0.66, 0.22, 0, -0.19, 0, P.paperShade, 1],
     ['rect', 0.1, 0.3, 0, -0.18, 0, P.ink, 1],
+    ['rect', 0.8, 0.18, 0, -0.12, 0, P.paperShade, 1],
+    ['rect', 0.3, 0.5, 0.42, -0.2, 0, P.paper, 1],
   ],
   hanoi_ngocson: [
     ['tri', 1.1, 0.9, 0, -0.28, 0, P.rust, 1],
@@ -198,11 +241,15 @@ const RECIPES = {
     ['rect', 0.08, 0.5, -0.35, -0.19, 0, P.rust, 1],
     ['rect', 0.08, 0.5, 0.35, -0.19, 0, P.rust, 1],
     ['arch', 0.16, 0.42, 0, -0.18, 0, P.ink, 1],
+    ['house', 0.42, 0.62, 0.62, -0.2, 0, P.paperShade, 1],
+    ['rect', 0.06, 0.8, -0.62, -0.18, 0, P.rust, 1],
   ],
   hanoi_thehuc: [
     ['arch', 1.3, 0.34, -0.3, 0, 90, P.rust, 1],
     ['arch', 1.3, 0.34, 0.3, 0, 90, P.rust, -1],
     ['rect', 1.5, 0.12, 0, 0.02, 0, P.terracotta, 1],
+    ['rect', 0.08, 0.5, -0.6, 0, 90, P.rust, 1],
+    ['rect', 0.08, 0.5, 0.6, 0, 90, P.rust, 1],
   ],
   hanoi_tranquoc: [
     ['rect', 0.06, 1.3, 0, -0.3, 0, P.mustard, 1],
@@ -212,6 +259,8 @@ const RECIPES = {
     ['rect', 0.5, 0.7, 0, -0.18, 0, P.paperShade, 1],
     ['tri', 0.9, 0.55, 0, -0.15, 0, P.terracotta, 1],
     ['rect', 0.7, 0.38, 0, -0.12, 0, P.paper, 1],
+    ['rect', 0.9, 0.25, 0, -0.1, 0, P.paperShade, 1],
+    ['house', 0.45, 0.7, 0.55, -0.18, 0, P.paper, 1],
   ],
   hanoi_tubehouse: [
     ['house', 0.55, 0.95, -0.55, -0.28, 0, P.paper, 1],
@@ -219,12 +268,16 @@ const RECIPES = {
     ['house', 0.5, 0.8, 0.55, -0.24, 0, P.paperShade, 1],
     ['tri', 0.62, 0.42, 0.55, -0.21, 0, P.rust, 1],
     ['rect', 0.1, 0.32, -0.55, -0.22, 0, P.ink, 1],
+    ['rect', 0.1, 0.55, -0.35, -0.22, 0, P.brown, 1],
+    ['rect', 0.4, 0.12, 0.55, -0.18, 0, P.teal, 1],
   ],
   hanoi_tubehouse_b: [
     ['house', 0.62, 1.0, 0.42, -0.26, 0, P.paper, 1],
     ['tri', 0.74, 0.55, 0.42, -0.23, 0, P.terracotta, 1],
     ['rect', 0.2, 0.14, 0.42, -0.2, 0, P.mustard, 1],
     tree(-0.55, 0.05, 0.85, P.olive),
+    ['rect', 0.4, 0.12, 0.42, -0.17, 0, P.mustard, 1],
+    ['rect', 0.1, 0.5, 0.62, -0.2, 0, P.brown, 1],
   ],
   hanoi_tubehouse_green: [
     tree(-0.6, -0.35, 0.9),
@@ -232,6 +285,8 @@ const RECIPES = {
     ['rect', 0.06, 0.95, 0.55, 0, 0, P.ink, 1],
     ['rect', 0.2, 0.24, 0.55, 0.02, 0, P.lantern, 1],
     ['rect', 0.34, 0.22, -0.15, 0.35, 0, P.kraft, 1],
+    ['rect', 0.06, 0.8, -0.55, 0, 0, P.ink, 1],
+    ['rect', 0.18, 0.2, -0.55, 0.02, 0, P.lantern, 1],
   ],
   hanoi_mausoleum: [
     ['rect', 1.0, 0.95, 0, -0.28, 0, P.brown, 1],
@@ -241,6 +296,8 @@ const RECIPES = {
     ['rect', 0.06, 0.45, -0.25, -0.17, 0, P.ink, 1],
     ['rect', 0.06, 0.45, 0, -0.17, 0, P.ink, 1],
     ['rect', 0.06, 0.45, 0.25, -0.17, 0, P.ink, 1],
+    ['rect', 0.4, 0.6, -0.62, -0.2, 0, P.paperShade, 1],
+    ['rect', 0.4, 0.6, 0.62, -0.2, 0, P.paperShade, 1],
   ],
   hanoi_badinh: [
     ['rect', 0.07, 1.05, 0, -0.6, 0, P.ink, 1],
@@ -248,6 +305,8 @@ const RECIPES = {
     ['rect', 0.5, 0.3, 0, -0.09, 0, P.kraft, 1],
     tuft(-0.7, 0.5),
     tuft(0.7, -0.5),
+    ['rect', 0.06, 1.3, 0.45, -0.3, 0, P.ink, 1],
+    ['arch', 0.5, 0.25, -0.5, 0.4, 0, P.rose, 1],
   ],
   hanoi_vanmieu: [
     ['tri', 0.95, 1.0, 0, -0.28, 0, P.rust, 1],
@@ -256,12 +315,16 @@ const RECIPES = {
     ['rect', 0.08, 0.55, -0.28, -0.19, 0, P.rust, 1],
     ['rect', 0.08, 0.55, 0.28, -0.19, 0, P.rust, 1],
     ['arch', 0.18, 0.42, 0, -0.18, 0, P.ink, 1],
+    ['rect', 0.2, 0.4, -0.52, -0.15, 0, P.paperShade, 1],
+    ['rect', 0.2, 0.4, 0.52, -0.15, 0, P.paperShade, 1],
   ],
   hanoi_onepillar: [
     ['tri', 0.68, 1.12, 0, -0.28, 0, P.terracotta, 1],
     ['rect', 0.5, 0.92, 0, -0.25, 0, P.paper, 1],
     ['rect', 0.62, 0.34, 0, -0.2, 0, P.paperShade, 1],
     ['rect', 0.1, 0.26, 0, -0.17, 0, P.ink, 1],
+    ['arch', 0.9, 0.3, 0, 0.15, 0, P.teal, 1],
+    ['rect', 0.7, 0.2, 0, -0.12, 0, P.paperShade, 1],
   ],
   hanoi_cathedral: [
     ['tri', 0.32, 1.35, -0.38, -0.28, 0, P.paperShade, 1],
@@ -269,6 +332,8 @@ const RECIPES = {
     ['tri', 0.72, 1.0, 0, -0.28, 0, P.terracotta, 1],
     ['rect', 0.62, 0.72, 0, -0.25, 0, P.paper, 1],
     ['arch', 0.16, 0.45, 0, -0.22, 0, P.ink, 1],
+    ['tri', 0.25, 0.8, -0.58, -0.2, 0, P.paper, 1],
+    ['tri', 0.25, 0.8, 0.58, -0.2, 0, P.paper, 1],
   ],
   hanoi_opera: [
     ['tri', 1.2, 0.85, 0, -0.28, 0, P.terracotta, 1],
@@ -277,32 +342,99 @@ const RECIPES = {
     ['arch', 0.12, 0.36, -0.32, -0.22, 0, P.tealDeep, 1],
     ['arch', 0.12, 0.36, 0.32, -0.22, 0, P.tealDeep, 1],
     ['rect', 1.1, 0.16, 0, -0.19, 0, P.paperShade, 1],
+    ['rect', 0.35, 0.55, -0.68, -0.2, 0, P.paperShade, 1],
+    ['rect', 0.35, 0.55, 0.68, -0.2, 0, P.paperShade, 1],
+    ['rect', 1.2, 0.14, 0, -0.12, 0, P.paperShade, 1],
   ],
   hanoi_longbien: [
     ['arch', 1.3, 0.34, -0.3, 0, 90, P.brown, 1],
     ['arch', 1.3, 0.34, 0.3, 0, 90, P.brown, -1],
     ['rect', 0.08, 0.5, -0.3, 0, 90, P.ink, 1],
     ['rect', 0.08, 0.5, 0.3, 0, 90, P.ink, 1],
+    ['rect', 0.08, 0.6, -0.5, 0, 90, P.ink, 1],
+    ['rect', 0.08, 0.6, 0.5, 0, 90, P.ink, 1],
+  ],
+  // Phase 2B street elements (Old Quarter only; flat cut-paper, no hero art card).
+  hanoi_road: [
+    ['rect', 0.12, 0.3, -0.75, -0.75, 0, P.ink, 1],
+    ['rect', 0.12, 0.3, 0.75, 0.75, 0, P.ink, 1],
+  ],
+  hanoi_sidewalk: [
+    ['rect', 0.5, 0.12, 0, 0.55, 0, P.paperShade, 1],
+  ],
+  hanoi_tree: [
+    tree(-0.25, -0.15, 1.15, P.pine),
+    tree(0.3, 0.25, 0.85, P.sage),
+  ],
+  hanoi_bush: [
+    ['arch', 0.55, 0.42, -0.35, -0.1, 0, P.sage, 1],
+    ['arch', 0.45, 0.34, 0.3, 0.15, 0, P.olive, 1],
+    ['arch', 0.35, 0.28, 0.05, 0.35, 0, P.moss, 1],
+  ],
+  hanoi_trafficlight: [
+    ['rect', 0.08, 0.95, 0.35, -0.1, 0, P.ink, 1],
+    ['lamp', 0.26, 1.0, 0.35, -0.1, 0, P.ink, 1],
+    ['glowtop', 0.12, 1.0, 0.35, -0.1, 0, P.lantern, 1],
+  ],
+  hanoi_police: [
+    ['figure', 0.36, 1.0, 0, -0.1, 0, P.ink, 1],
+    ['figure', 0.26, 0.85, 0, -0.08, 0, P.paper, 1],
+  ],
+  hanoi_pedestrian: [
+    ['figure', 0.3, 0.95, -0.45, -0.1, 0, P.rose, 1],
+    ['figure', 0.3, 0.9, 0.45, 0.05, 0, P.teal, 1],
+    ['figure', 0.2, 0.6, 0.05, 0.2, 0, P.mustard, 1],
+  ],
+  hanoi_vendor: [
+    ['figure', 0.3, 0.9, 0, -0.15, 0, P.paper, 1],
+    ['arch', 0.5, 0.32, -0.5, 0.1, 0, P.ochre, 1],
+    ['arch', 0.5, 0.32, 0.5, 0.1, 0, P.ochre, 1],
+  ],
+  hanoi_phostall: [
+    ['house', 0.9, 1.0, 0, -0.2, 0, P.terracotta, 1],
+    ['rect', 0.5, 0.4, 0, -0.15, 0, P.paper, 1],
+    ['arch', 0.24, 0.3, -0.2, -0.1, 0, P.ink, 1],
+    ['rect', 0.34, 0.18, 0.2, -0.05, 0, P.mustard, 1],
+  ],
+  hanoi_pole: [
+    ['lamp', 0.55, 1.3, 0, -0.15, 0, P.ink, 1],
+    ['rect', 0.22, 0.35, 0.3, 0.1, 0, P.paperShade, 1],
+  ],
+  hanoi_lamp: [
+    ['lamp', 0.3, 1.05, 0, -0.1, 0, P.ink, 1],
+    ['glowtop', 0.14, 1.05, 0, -0.1, 0, P.lantern, 1],
   ],
 };
 
 // Hero art card per model: [kind, w, h, x, z, ryDeg, color, foldSign] + sprite key (or null).
 // The card is a plain rect; the sprite's alpha does the die-cut. Sizes match the atlas rects above.
 const HERO = {
-  hanoi_turtletower: [['rect', 0.62, 1.05, 0, -0.15, 0, P.paper, 1], 'turtletower'],
-  hanoi_ngocson: [['rect', 1.15, 0.95, 0, -0.15, 0, P.paper, 1], 'ngocson'],
-  hanoi_thehuc: [['rect', 1.5, 0.55, -0.32, 0, 90, P.paper, 1], 'thehuc'],
-  hanoi_tranquoc: [['rect', 0.7, 1.3, 0, -0.1, 0, P.paper, 1], 'tranquoc'],
-  hanoi_tubehouse: [['rect', 0.6, 1.0, -0.55, -0.19, 0, P.paper, 1], 'tubehouse'],
-  hanoi_tubehouse_b: [['rect', 0.66, 1.05, 0.42, -0.19, 0, P.paper, 1], 'tubehouse'],
+  hanoi_turtletower: [['rect', 0.72, 1.22, 0, -0.15, 0, P.paper, 1], 'turtletower'],
+  hanoi_ngocson: [['rect', 1.3, 1.08, 0, -0.15, 0, P.paper, 1], 'ngocson'],
+  hanoi_thehuc: [['rect', 1.6, 0.585, -0.32, 0, 90, P.paper, 1], 'thehuc'],
+  hanoi_tranquoc: [['rect', 0.78, 1.44, 0, -0.1, 0, P.paper, 1], 'tranquoc'],
+  hanoi_tubehouse: [['rect', 0.68, 1.13, -0.55, -0.19, 0, P.paper, 1], 'tubehouse'],
+  hanoi_tubehouse_b: [['rect', 0.68, 1.13, 0.42, -0.19, 0, P.paper, 1], 'tubehouse'],
   hanoi_tubehouse_green: null,
-  hanoi_mausoleum: [['rect', 1.05, 1.0, 0, -0.15, 0, P.paper, 1], 'mausoleum'],
+  hanoi_mausoleum: [['rect', 1.2, 1.14, 0, -0.15, 0, P.paper, 1], 'mausoleum'],
   hanoi_badinh: null,
-  hanoi_vanmieu: [['rect', 1.15, 1.05, 0, -0.15, 0, P.paper, 1], 'vanmieu'],
-  hanoi_onepillar: [['rect', 0.72, 1.15, 0, -0.15, 0, P.paper, 1], 'onepillar'],
-  hanoi_cathedral: [['rect', 1.25, 1.35, 0, -0.15, 0, P.paper, 1], 'cathedral'],
-  hanoi_opera: [['rect', 1.25, 0.9, 0, -0.15, 0, P.paper, 1], 'opera'],
-  hanoi_longbien: [['rect', 1.5, 0.7, -0.32, 0, 90, P.paper, 1], 'longbien'],
+  hanoi_vanmieu: [['rect', 1.3, 1.19, 0, -0.15, 0, P.paper, 1], 'vanmieu'],
+  hanoi_onepillar: [['rect', 0.8, 1.28, 0, -0.15, 0, P.paper, 1], 'onepillar'],
+  hanoi_cathedral: [['rect', 1.38, 1.49, 0, -0.15, 0, P.paper, 1], 'cathedral'],
+  hanoi_opera: [['rect', 1.42, 1.02, 0, -0.15, 0, P.paper, 1], 'opera'],
+  hanoi_longbien: [['rect', 1.6, 0.75, -0.32, 0, 90, P.paper, 1], 'longbien'],
+  // Phase 2B street elements: flat-colour flaps only, no hero art card (no new atlas sprites).
+  hanoi_road: null,
+  hanoi_sidewalk: null,
+  hanoi_tree: null,
+  hanoi_bush: null,
+  hanoi_trafficlight: null,
+  hanoi_police: null,
+  hanoi_pedestrian: null,
+  hanoi_vendor: null,
+  hanoi_phostall: null,
+  hanoi_pole: null,
+  hanoi_lamp: null,
 };
 
 function buildTile(id, mat) {
